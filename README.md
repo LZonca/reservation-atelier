@@ -7,6 +7,73 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+# Installation mongodb
+Il faut installer l'extension mongodb pour php
+
+https://pecl.php.net/package/mongodb/2.1.4/windows et selectionner la version Thread Safe (TS) en fonction de votre version PHP.
+
+Placer le fichier dll dans le dossier ext de votre installation PHP (ex: C:\xampp\php\ext).
+
+Modifier le fichier php.ini (ex: C:\xampp\php\php.ini) et ajouter la ligne suivante à la fin :
+
+```
+extension=mongodb.dll
+```
+
+Faire de même pour le fichier php.ini de votre serveur Apache (ex: C:\xampp\apache\bin\php.ini).
+
+Redémarrer Apache via le panneau de contrôle XAMPP/WAMP/Laragon/etc...
+
+Pour tester, faire un fichier contenant le code suivant et vérifier la présence de mongodb dans la liste des extensions installées :
+
+```php
+<?php
+phpinfo();
+```
+
+## Démarage du projet
+
+Cloner le projet
+
+```bash
+git clone
+```
+
+Aller dans le dossier du projet
+
+```bash
+cd nom_du_projet
+```
+Installer les dépendances via composer
+
+```bash
+composer install
+```
+
+Installer les dépendances via npm
+
+```bash
+npm install
+```
+
+Copier le fichier .env.example en .env
+```bash
+cp .env.example .env
+``` 
+
+Paramétrer la connexion à la base de données dans le fichier .env
+```env
+DB_CONNECTION=mongodb
+DB_HOST=
+DB_PORT=
+DB_DATABASE=
+DB_USERNAME=
+DB_PASSWORD=
+```
+
+
+
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
@@ -59,3 +126,4 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
