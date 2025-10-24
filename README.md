@@ -22,7 +22,7 @@ extension=mongodb.dll
 
 Faire de même pour le fichier php.ini de votre serveur Apache (ex: C:\xampp\apache\bin\php.ini).
 
-Redémarrer Apache via le panneau de contrôle XAMPP/WAMP/Laragon/etc...
+### Redémarrer Apache via le panneau de contrôle XAMPP/WAMP/Laragon/etc...
 
 Pour tester, faire un fichier contenant le code suivant et vérifier la présence de mongodb dans la liste des extensions installées :
 
@@ -30,6 +30,14 @@ Pour tester, faire un fichier contenant le code suivant et vérifier la présenc
 <?php
 phpinfo();
 ```
+
+Ou via la ligne de commande :
+
+```bash
+composer check-platform-reqs
+````
+
+Vérifier la présence de ext-mongodb 2.1.4 dans la liste.
 
 ## Démarage du projet
 
