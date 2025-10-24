@@ -7,6 +7,17 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Prérequis
+
+Version de PHP 8.2 ou supérieur (8.3 suggéré)
+(https://www.php.net/downloads.php)
+
+Composer installé (https://getcomposer.org/download/)
+NodeJS installé (https://nodejs.org/en/download/)
+
+Un serveur web local (XAMPP, WAMP, Laragon, etc...)
+Une base de données MongoDB (locale ou distante) (https://www.mongodb.com/try/download/community)
+
 # Installation mongodb
 Il faut installer l'extension mongodb pour php
 
@@ -79,8 +90,19 @@ DB_USERNAME=
 DB_PASSWORD=
 ```
 
+Lancer les migrations (création des collections dans mongodb)
 
+```bash
+php artisan migrate
+```
 
+Lancer le serveur de développement
+
+```bash
+php artisan serve
+```
+
+Visiter l'application dans le navigateur : http://127.0.0.1:8000
 
 ## About Laravel
 
