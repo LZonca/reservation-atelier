@@ -7,6 +7,17 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Prérequis
+
+Version de PHP 8.2 ou supérieur (8.3 suggéré)
+(https://www.php.net/downloads.php)
+
+Composer installé (https://getcomposer.org/download/)
+NodeJS installé (https://nodejs.org/en/download/)
+
+Un serveur web local (XAMPP, WAMP, Laragon, etc...)
+Une base de données MongoDB (locale ou distante) (https://www.mongodb.com/try/download/community)
+
 # Installation mongodb
 Il faut installer l'extension mongodb pour php
 
@@ -22,7 +33,7 @@ extension=mongodb.dll
 
 Faire de même pour le fichier php.ini de votre serveur Apache (ex: C:\xampp\apache\bin\php.ini).
 
-Redémarrer Apache via le panneau de contrôle XAMPP/WAMP/Laragon/etc...
+### Redémarrer Apache via le panneau de contrôle XAMPP/WAMP/Laragon/etc...
 
 Pour tester, faire un fichier contenant le code suivant et vérifier la présence de mongodb dans la liste des extensions installées :
 
@@ -30,6 +41,14 @@ Pour tester, faire un fichier contenant le code suivant et vérifier la présenc
 <?php
 phpinfo();
 ```
+
+Ou via la ligne de commande :
+
+```bash
+composer check-platform-reqs
+````
+
+Vérifier la présence de ext-mongodb 2.1.4 dans la liste.
 
 ## Démarage du projet
 
@@ -71,8 +90,19 @@ DB_USERNAME=
 DB_PASSWORD=
 ```
 
+Lancer les migrations (création des collections dans mongodb)
 
+```bash
+php artisan migrate
+```
 
+Lancer le serveur de développement
+
+```bash
+php artisan serve
+```
+
+Visiter l'application dans le navigateur : http://127.0.0.1:8000
 
 ## About Laravel
 
