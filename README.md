@@ -28,7 +28,7 @@ Placer le fichier dll dans le dossier ext de votre installation PHP (ex: C:\xamp
 Modifier le fichier php.ini (ex: C:\xampp\php\php.ini) et ajouter la ligne suivante à la fin :
 
 ```
-extension=mongodb.dll
+extension=php_mongodb.dll
 ```
 
 Faire de même pour le fichier php.ini de votre serveur Apache (ex: C:\xampp\apache\bin\php.ini).
