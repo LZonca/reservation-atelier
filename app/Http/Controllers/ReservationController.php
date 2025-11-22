@@ -8,9 +8,9 @@ use App\Models\Reservation;
 
 class ReservationController extends Controller
 {
-    public function index()
+    static public function index()
     {
-        return ReservationResource::collection(Reservation::all());
+        return ReservationResource::collection(Reservation::all()); //retourne toutes les réservations
     }
 
     public function store(ReservationRequest $request)

@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\AtelierController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\UserController;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\ClientResource;
 use App\Models\Client;
@@ -10,15 +14,26 @@ Route::get('/hello', function () {
     return 'Hello, World!';
 });
 
-Route::get('/users', function () {
-    return UserResource::collection(User::with('reservations')->get());
-});
 
-Route::get('/clients', function () {
-    return ClientResource::collection(Client::with('reservations')->get());
-});
+// TODO: Sécuriser les routes avec un middleware d'authentification
 
-Route::get('/clients/{id}', function ($id) {
-    $client = Client::with('reservations')->findOrFail($id);
-    return new ClientResource($client);
-});
+Route::get('/users', [UserController::class, 'index'])->name('users.index');
+
+Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
+Route::get('/clients/{client}', [ClientController::class, 'show'])->name('clients.show');
+Route::post('/clients/{client}/panier', [ClientController::class, 'addToPanier'])->name('clients.addToPanier');
+
+Route::get('/ateliers', [AtelierController::class, 'index'])->name('ateliers.index');
+
+Route::get('/ateliers/{id}', [AtelierController::class, 'show'])->name('ateliers.show');
+
+Route::post('/ateliers', [AtelierController::class, 'store'])->name('ateliers.store');
+
+Route::put('/ateliers/{id}', [AtelierController::class, 'update'])->name('ateliers.update');
+
+Route::delete('/ateliers/{id}', [AtelierController::class, 'destroy'])->name('ateliers.destroy');
+
+
+
+Route::post('/atelier/{atelierId}/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+Route::get('/atelier/{atelierId}/reservations', [ReservationController::class, 'index'])->name('reservations.index');

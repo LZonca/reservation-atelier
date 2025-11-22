@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model;
-use MongoDB\Laravel\Relations\BelongsTo;
+use MongoDB\Laravel\Relations\EmbedsOne;
 
 class Reservation extends Model
 {
@@ -15,4 +15,19 @@ class Reservation extends Model
         'prix',
         'nbPersonne',
     ];
+
+    public function atelier()
+    {
+        return $this->belongsTo(Atelier::class);
+    }
+
+    public function client()
+    {
+        return $this->belongsTo(Client::class);
+    }
+
+    public function paiements(): EmbedsOne
+    {
+        return $this->embedsOne(Paiement::class);
+    }
 }

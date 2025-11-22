@@ -12,14 +12,14 @@ use MongoDB\Laravel\Eloquent\DocumentModel;
 use MongoDB\Laravel\Eloquent\Model;
 use MongoDB\Laravel\Relations\HasOne;
 
-
+// CLASSE REPRESANTANT LES EMPLOYES
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, DocumentModel;
 
     protected $connection = 'mongodb';
-    protected string $collection = 'users';
+    protected string $collection = 'employes';
 
     /**
      * The attributes that are mass assignable.
@@ -41,6 +41,11 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+
+    public function ateliers(): HasMany{
+        return $this->HasMany(Atelier::class);
+    }
 
 
     /**
