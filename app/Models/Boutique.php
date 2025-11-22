@@ -30,6 +30,10 @@ class Boutique extends EloquentModel
         return $this->embedsOne(Adresse::class);
     }
 
+    public function salles(){
+        return $this->hasMany(Salle::class);
+    }
+
 
 }
 

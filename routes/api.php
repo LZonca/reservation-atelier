@@ -25,17 +25,16 @@ Route::get('/clients/{client}', [ClientController::class, 'show'])->name('client
 Route::post('/clients/{client}/panier', [ClientController::class, 'addToPanier'])->name('clients.addToPanier');
 
 Route::get('/ateliers', [AtelierController::class, 'index'])->name('ateliers.index');
-
 Route::get('/ateliers/{id}', [AtelierController::class, 'show'])->name('ateliers.show');
-
 Route::post('/ateliers', [AtelierController::class, 'store'])->name('ateliers.store');
-
 Route::put('/ateliers/{id}', [AtelierController::class, 'update'])->name('ateliers.update');
-
 Route::delete('/ateliers/{id}', [AtelierController::class, 'destroy'])->name('ateliers.destroy');
 
 Route::get('/boutiques', [BoutiqueController::class, 'index'])->name('boutiques.index');
-
+Route::get('/boutiques/{id}', [BoutiqueController::class, 'show'])->name('boutiques.show');
+Route::post('/boutiques', [BoutiqueController::class, 'store'])->name('boutiques.store');
+Route::put('boutiques/{id}', [BoutiqueController::class, 'update'])->name('boutiques.update');
+Route::delete('/boutiques/{id}', [BoutiqueController::class, 'destroy'])->name('boutiques.destroy');
 
 Route::post('/atelier/{atelierId}/reservations', [ReservationController::class, 'store'])->name('reservations.store');
 Route::get('/atelier/{atelierId}/reservations', [ReservationController::class, 'index'])->name('reservations.index');
