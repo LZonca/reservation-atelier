@@ -5,10 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model as EloquentModel;
 use MongoDB\Laravel\Eloquent\DocumentModel;
-use Illuminate\Database\Eloquent\Casts\AsArrayObject;
-use MongoDB\Laravel\Relations\HasMany;
 
-class Client extends EloquentModel
+class Intervenant extends EloquentModel
 {
     use HasFactory;
     use DocumentModel;
@@ -18,17 +16,7 @@ class Client extends EloquentModel
         'prenom',
         'email',
         'telephone',
-        'panier',
         'created_at',
         'updated_at',
     ];
-
-    protected $casts = [
-        'panier' => 'array',
-    ];
-
-    public function reservations()
-    {
-        return $this->hasMany(Reservation::class);
-    }
 }

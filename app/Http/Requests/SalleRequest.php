@@ -4,16 +4,13 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ReservationRequest extends FormRequest
+class SalleRequest extends FormRequest
 {
     public function rules(): array
     {
-
-        //TODO: ajouter les regles de validation pour la capacité de salle
-
         return [
-            'prix' => ['required', 'numeric', 'min:0'],
-            'nbPersonne' => ['required'],
+            'capacite' => ['required', 'integer'],
+            'categorie' => ['required'],
         ];
     }
 

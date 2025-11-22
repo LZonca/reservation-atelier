@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('employes', function (Blueprint $table) {
             // MongoDB creates its own _id; don't add an SQL auto-increment id
             $table->string('name');
             $table->string('email')->unique();
@@ -45,7 +45,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('employes');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }

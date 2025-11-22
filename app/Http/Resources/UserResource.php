@@ -21,8 +21,6 @@ class UserResource extends JsonResource
             'updated_at' => $this->updated_at,
             'two_factor_secret' => $this->two_factor_secret,
             'two_factor_recovery_codes' => $this->two_factor_recovery_codes,
-            'two_factor_confirmed_at' => $this->two_factor_confirmed_at,
-            'reservations' => ReservationResource::collection($this->reservations),
-        ];
+            'two_factor_confirmed_at' => $this->two_factor_confirmed_at];
     }
 }
