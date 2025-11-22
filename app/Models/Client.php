@@ -31,4 +31,9 @@ class Client extends EloquentModel
     {
         return $this->hasMany(Reservation::class);
     }
+
+    public function commentaires(): HasMany
+    {
+        return $this->hasMany(Commentaire::class);
+    }
 }

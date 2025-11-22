@@ -5,6 +5,7 @@ use App\Http\Controllers\BoutiqueController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CommentaireController;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\ClientResource;
 use App\Models\Client;
@@ -39,3 +40,9 @@ Route::get('/boutiques', [BoutiqueController::class, 'index'])->name('boutiques.
 
 Route::post('/atelier/{atelierId}/reservations', [ReservationController::class, 'store'])->name('reservations.store');
 Route::get('/atelier/{atelierId}/reservations', [ReservationController::class, 'index'])->name('reservations.index');
+
+
+Route::post('/atelier/{atelier}/commentaires', [AtelierController::class, 'addComment'])->name('ateliers.addComment');
+Route::get('/atelier/{atelier}/commentaires', [AtelierController::class, 'getComments'])->name('ateliers.getComments');
+Route::put('/commentaires/{commentaire}', [CommentaireController::class, 'update'])->name('commentaire.update');
+Route::delete('/commentaires/{commentaire}', [CommentaireController::class, 'destroy'])->name('commentaire.destroy');

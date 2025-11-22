@@ -8,6 +8,7 @@ use MongoDB\Laravel\Eloquent\Model as EloquentModel;
 use MongoDB\Laravel\Eloquent\DocumentModel;
 use MongoDB\Laravel\Relations\BelongsTo;
 use MongoDB\Laravel\Relations\EmbedsMany;
+use MongoDB\Laravel\Relations\HasMany;
 
 class Atelier extends EloquentModel
 {
@@ -49,6 +50,10 @@ class Atelier extends EloquentModel
         return $this->belongsTo(Salle::class);
     }
 
+    public function commentaires(): HasMany
+    {
+        return $this->hasMany(Commentaire::class);
+    }
 
     protected function casts(): array
     {
