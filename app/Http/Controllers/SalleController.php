@@ -28,7 +28,7 @@ class SalleController extends Controller
     public function show(Salle $salle)
     {
         $this->authorize('view', $salle);
-
+        $salle= Salle::with(['boutique'])->get();
         return new SalleResource($salle);
     }
 
