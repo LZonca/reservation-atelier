@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             ClientSeeder::class,
+            BoutiqueSeeder::class,
             SalleSeeder::class,
             AtelierSeeder::class,
             ReservationSeeder::class,
