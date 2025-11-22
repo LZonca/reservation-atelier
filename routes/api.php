@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AtelierController;
+use App\Http\Controllers\BoutiqueController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\UserController;
@@ -33,6 +34,7 @@ Route::put('/ateliers/{id}', [AtelierController::class, 'update'])->name('atelie
 
 Route::delete('/ateliers/{id}', [AtelierController::class, 'destroy'])->name('ateliers.destroy');
 
+Route::get('/boutiques', [BoutiqueController::class, 'index'])->name('boutiques.index');
 
 
 Route::post('/atelier/{atelierId}/reservations', [ReservationController::class, 'store'])->name('reservations.store');
