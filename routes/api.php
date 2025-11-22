@@ -42,6 +42,7 @@ Route::post('/atelier/{atelierId}/reservations', [ReservationController::class, 
 Route::get('/atelier/{atelierId}/reservations', [ReservationController::class, 'index'])->name('reservations.index');
 
 
+
 Route::post('/atelier/{atelier}/commentaires', [AtelierController::class, 'addComment'])->name('ateliers.addComment');
 Route::get('/atelier/{atelier}/commentaires', [AtelierController::class, 'getComments'])->name('ateliers.getComments');
 Route::put('/commentaires/{commentaire}', [CommentaireController::class, 'update'])->name('commentaire.update');
