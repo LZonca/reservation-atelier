@@ -4,14 +4,15 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class SalleRequest extends FormRequest
+class AdresseRequest extends FormRequest
 {
     public function rules(): array
     {
         return [
-            'capacite' => ['required', 'integer'],
-            'categorie' => ['required'],
-            'boutique_id' => ['required', 'exists:boutique,id'],
+            'rue' => ['required'],
+            'numero' => ['required', 'integer'],
+            'ville' => ['required'],
+            'code_postal' => ['required'],
         ];
     }
 
@@ -19,4 +20,5 @@ class SalleRequest extends FormRequest
     {
         return true;
     }
+
 }
