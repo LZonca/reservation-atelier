@@ -9,8 +9,6 @@ class Adresse extends Model
 {
     use HasFactory;
 
-    protected string $collection = 'adresses';
-
     protected $fillable = [
         'rue',
         'numero',
