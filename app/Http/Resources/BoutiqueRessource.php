@@ -1,20 +1,22 @@
 <?php
 
+
 namespace App\Http\Resources;
 
-use App\Models\Salle;
+use App\Models\Boutique;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin Salle */
-class SalleResource extends JsonResource
+/** @mixin Boutique */
+class BoutiqueRessource extends JsonResource
 {
+    public static $wrap = 'boutique';
+
     public function toArray(Request $request): array
     {
         return [
-            'capacite' => $this->capacite,
-            'categorie' => $this->categorie,
-            'boutique' => new BoutiqueRessource($this->employe),
+            'nom' => $this->nom,
+            'adresse' => new AdresseResource($this->adresse),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
