@@ -6,6 +6,11 @@ use App\Http\Requests\AtelierRequest;
 use App\Http\Resources\AtelierResource;
 use App\Models\Atelier;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Models\Commentaire;
+use App\Models\Client;
+use App\Http\Resources\CommentaireResource;
+use Illuminate\Http\Request;
+use App\Http\Requests\CommentaireRequest;
 
 class AtelierController extends Controller
 {
@@ -22,6 +27,25 @@ class AtelierController extends Controller
         $this->authorize('create', Atelier::class);
 
         return new AtelierResource(Atelier::create($request->validated()));
+    }
+
+    public function addComment(Atelier $atelier, CommentaireRequest $request)
+    {
+        $commentaire = new Commentaire($request->validated());
+
+        $commentaire->atelier_id = $atelier->id;
+        $commentaire->client_id = $request->input('client_id');
+        $commentaire->date = now();
+
+        $commentaire->save();
+
+        return new CommentaireResource($commentaire);
+    }
+
+    public function getComments(Atelier $atelier)
+    {
+        $commentaires = $atelier->commentaires()->with('client')->get();
+        return CommentaireResource::collection($commentaires);
     }
 
     public function show($id)
