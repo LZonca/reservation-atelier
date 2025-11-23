@@ -19,7 +19,10 @@ class ClientController extends Controller
 
     public function store(ClientRequest $request)
     {
-        return new ClientResource(Client::create($request->validated()));
+        $client = Client::create($request->validated());
+        $client->credit_fidelite = 0;
+        $client->save();
+        return new ClientResource($client);
     }
 
     public function show(Client $client)
@@ -133,7 +136,8 @@ class ClientController extends Controller
     {
         $data = $request->validate([
             'numCarte' => ['required', 'string'],
-            'methode_paiement' => ['nullable', 'string', 'in:carte,virement,paypal'],
+            'methode_paiement' => ['nullable', 'string', 'in:carte,virement,paypal,credit_fidelite'],
+            
         ]);
 
         $panier = $client->panier;
@@ -142,12 +146,16 @@ class ClientController extends Controller
             return response()->json(['message' => 'Le panier est vide.'], 400);
         }
 
+
+
+    
         // Vérifier la capacité pour tous les ateliers
         foreach ($panier['ateliers'] as $item) {
             $atelier = Atelier::find($item['id']);
             if (!$atelier) {
                 return response()->json(['message' => 'Atelier introuvable: ' . $item['id']], 404);
             }
+
             if ($atelier->remainingCapacity() < $item['quantity']) {
                 return response()->json([
                     'message' => 'Capacité insuffisante pour l\'atelier: ' . $atelier->nom,
@@ -161,7 +169,10 @@ class ClientController extends Controller
         foreach ($panier['ateliers'] as $item) {
             $atelier = Atelier::find($item['id']);
             $prix = ($atelier->prix ?? 0) * $item['quantity'];
-
+            if($atelier->vip && $request['methode_paiement']=='credit_fidelite'){
+                $prix = 0;
+                $client->credit_fidelite -=10;
+            }
             $reservation = new Reservation([
                 'nbPersonne' => $item['quantity'],
                 'prix' => $prix,
@@ -173,19 +184,26 @@ class ClientController extends Controller
             $paiement = new Paiement([
                 'numCarte' => $data['numCarte'],
                 'montant' => $prix,
-                'methode_paiement' => $data['methode_paiement'] ?? 'carte',
+                'methode_paiement' => $data['methode_paiement'] ?? "carte",
                 'statut' => 'paye',
                 'payement_recieved_at' => now(),
             ]);
+            
 
             $reservation->paiements()->save($paiement);
             $reservation->save();
-
+            if( $request['methode_paiement']!='credit_fidelite'){
+                $client->credit_fidelite += $item['quantity'] ;
+            }
+           
             $reservations[] = $reservation;
         }
 
+       
         // Vider le panier
         $client->panier = ['ateliers' => []];
+   
+
         $client->save();
 
         return response()->json([

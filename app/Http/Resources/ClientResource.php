@@ -20,6 +20,7 @@ class ClientResource extends JsonResource
             'panier' => $this->panier,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'credit_fidelite' => $this->credit_fidelite
         ];
     }
 }

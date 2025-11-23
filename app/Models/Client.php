@@ -23,6 +23,7 @@ class Client extends EloquentModel
         'panier',
         'created_at',
         'updated_at',
+        'credit_fidelite'
     ];
 
     protected $casts = [

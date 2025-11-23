@@ -19,6 +19,7 @@ class ClientFactory extends Factory
             'phone' => $this->faker->phoneNumber(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
+            'credit_fidelite'=>$this->faker->numberBetween(0,10)
         ];
     }
 }

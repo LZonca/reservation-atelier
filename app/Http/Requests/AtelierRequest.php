@@ -13,6 +13,7 @@ class AtelierRequest extends FormRequest
             'description' => ['nullable'],
             'duree' => ['required', 'integer'],
             'date' => ['required', 'date'],
+            'vip'=>['required','boolean'],
             'salle_id' => ['required'],
             'employe_id' => ['required'],
 
