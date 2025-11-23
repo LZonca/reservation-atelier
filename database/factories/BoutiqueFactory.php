@@ -21,6 +21,13 @@ class BoutiqueFactory extends Factory
             ],
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
+            'salles'=>[
+                'nom' => $this->faker->word(),
+                'capacite' => $this->faker->numberBetween(5,15),
+                'categorie' => $this->faker->word(),
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]
         ];
     }
 }

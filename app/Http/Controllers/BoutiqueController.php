@@ -20,7 +20,7 @@ class BoutiqueController
 
     public function show($id)
     {
-        $boutique = Boutique::with(['adresse'])->findOrFail($id);
+        $boutique = Boutique::with(['adresse','salles'])->findOrFail($id);
         return new BoutiqueRessource($boutique);
     }
     public function update(BoutiqueRequest $request, Boutique $boutique)

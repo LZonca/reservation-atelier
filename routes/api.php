@@ -32,6 +32,7 @@ Route::patch('/ateliers/{atelier}', [AtelierController::class, 'update'])->name(
 Route::delete('/ateliers/{atelier}', [AtelierController::class, 'destroy'])->name('ateliers.destroy');
 
 Route::get('/boutiques', [BoutiqueController::class, 'index'])->name('boutiques.index');
+Route::get('/boutiques/{boutique}', [BoutiqueController::class, 'show'])->name('boutiques.show');
 
 Route::post('/atelier/{atelierId}/reservations', [ReservationController::class, 'store'])->name('reservations.store');
 Route::get('/atelier/{atelierId}/reservations', [ReservationController::class, 'index'])->name('reservations.index');

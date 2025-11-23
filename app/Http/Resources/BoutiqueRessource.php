@@ -19,6 +19,7 @@ class BoutiqueRessource extends JsonResource
             'adresse' => new AdresseRessource($this->adresse),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'salles' => SalleResource::collection($this->salles)
         ];
     }
 }
