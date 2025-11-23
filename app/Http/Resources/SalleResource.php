@@ -14,7 +14,6 @@ class SalleResource extends JsonResource
         return [
             'capacite' => $this->capacite,
             'categorie' => $this->categorie,
-            'boutique' => new BoutiqueRessource($this->employe),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

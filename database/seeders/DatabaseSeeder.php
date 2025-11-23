@@ -13,7 +13,6 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             ClientSeeder::class,
             BoutiqueSeeder::class,
-            SalleSeeder::class,
             AtelierSeeder::class,
             ReservationSeeder::class,
         ]);
