@@ -13,8 +13,12 @@ class AtelierResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id' => $this->id,
             'nom' => $this->nom,
+            'description' => $this->description,
             'date' => $this->date,
+            'duree' => $this->duree,
+            'prix' => $this->prix,
             'intervenant' => new IntervenantResource($this->intervenant),
             'salle' => new SalleResource($this->salle),
             'employe' => new UserResource($this->employe),

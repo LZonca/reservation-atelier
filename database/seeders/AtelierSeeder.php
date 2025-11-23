@@ -23,7 +23,6 @@ class AtelierSeeder extends Seeder
         foreach (range(1, 25) as $index) {
             $atelier = Atelier::factory()->create();
 
-            // Associer un employé et une salle
             $atelier->employe()->associate($users->random());
             $atelier->salle()->associate($salles->random());
             $atelier->save();

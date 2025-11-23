@@ -13,6 +13,7 @@ class SalleFactory extends Factory
     public function definition(): array
     {
         return [
+            'nom' => $this->faker->word(),
             'capacite' => $this->faker->randomNumber(),
             'categorie' => $this->faker->word(),
             'created_at' => Carbon::now(),

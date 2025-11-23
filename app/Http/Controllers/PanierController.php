@@ -6,6 +6,7 @@ use App\Http\Requests\PanierRequest;
 use App\Http\Resources\PanierResource;
 use App\Models\Panier;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class PanierController extends Controller
 {
