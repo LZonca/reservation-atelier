@@ -13,6 +13,8 @@ class PanierResource extends JsonResource
     {
         return [
             'expires_at' => $this->expires_at,
+            'client_id' => $this->client_id,
+            'items' => PanierItemResource::collection($this->items),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

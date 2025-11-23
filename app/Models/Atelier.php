@@ -15,7 +15,6 @@ class Atelier extends EloquentModel
     use HasFactory;
     use DocumentModel;
 
-    // Use the MongoDB connection and specify collection name
     protected $connection = 'mongodb';
     protected string $collection = 'ateliers';
 
@@ -25,6 +24,9 @@ class Atelier extends EloquentModel
         'description',
         'duree',
         'prix',
+        'salle_id',
+        'employe_id',
+        'intervenant',
         'created_at',
         'updated_at',
     ];
@@ -53,6 +55,18 @@ class Atelier extends EloquentModel
     public function commentaires(): HasMany
     {
         return $this->hasMany(Commentaire::class);
+    }
+
+    /**
+     * Calcule la capacité restante en prenant la capacité de la salle.
+     */
+    public function remainingCapacity(): int
+    {
+        $reserved = \App\Models\Reservation::where('atelier_id', $this->id)->sum('nbPersonne');
+
+        $salleCapacite = $this->salle ? ($this->salle->capacite ?? 0) : ($this->capacite ?? 0);
+
+        return max(0, $salleCapacite - $reserved);
     }
 
     protected function casts(): array

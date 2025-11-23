@@ -10,10 +10,18 @@ class AtelierRequest extends FormRequest
     {
         return [
             'nom' => ['required'],
+            'description' => ['nullable'],
+            'duree' => ['required', 'integer'],
             'date' => ['required', 'date'],
-            'intervenant_id' => ['required', 'exists:intervenants,id'],
-            'salle_id' => ['required', 'exists:salles,id'],
-            'employe_id' => ['required', 'exists:users,id'],
+            'salle_id' => ['required'],
+            'employe_id' => ['required'],
+
+            // Validation pour l'intervenant embedded
+            'intervenant' => ['nullable', 'array'],
+            'intervenant.nom' => ['required_with:intervenant', 'string'],
+            'intervenant.prenom' => ['required_with:intervenant', 'string'],
+            'intervenant.email' => ['required_with:intervenant', 'email'],
+            'intervenant.telephone' => ['nullable', 'string'],
         ];
     }
 

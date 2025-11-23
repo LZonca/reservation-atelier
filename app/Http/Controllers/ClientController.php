@@ -6,6 +6,8 @@ use App\Http\Requests\ClientRequest;
 use App\Http\Resources\ClientResource;
 use App\Models\Client;
 use App\Models\Atelier;
+use App\Models\Reservation;
+use App\Models\Paiement;
 use Illuminate\Http\Request;
 
 class ClientController extends Controller
@@ -80,13 +82,115 @@ class ClientController extends Controller
             ];
         }
 
-        // Persist panier on client and save
         $client->panier = $panier;
         $client->save();
 
         return response()->json([
             'message' => 'Atelier ajouté au panier avec succès.',
             'panier' => $panier,
+        ], 201);
+    }
+
+    public function removeFromPanier(Client $client, Request $request)
+    {
+        $data = $request->validate([
+            'atelier_id' => ['required', 'string'],
+        ]);
+
+        $atelierId = $data['atelier_id'];
+
+        $panier = $client->panier ?? ['ateliers' => []];
+
+        if (!isset($panier['ateliers'])) {
+            $panier['ateliers'] = [];
+        }
+
+        $panier['ateliers'] = array_filter($panier['ateliers'], function ($item) use ($atelierId) {
+            return data_get($item, 'id') != $atelierId;
+        });
+
+        $client->panier = $panier;
+        $client->save();
+
+        return response()->json([
+            'message' => 'Atelier retiré du panier.',
+            'panier' => $panier,
+        ], 200);
+    }
+
+    public function emptyPanier(Client $client)
+    {
+        $client->panier = ['ateliers' => []];
+        $client->save();
+
+        return response()->json([
+            'message' => 'Panier vidé.',
+            'panier' => $client->panier,
+        ], 200);
+    }
+
+    public function processPanier(Client $client, Request $request)
+    {
+        $data = $request->validate([
+            'numCarte' => ['required', 'string'],
+            'methode_paiement' => ['nullable', 'string', 'in:carte,virement,paypal'],
+        ]);
+
+        $panier = $client->panier;
+
+        if (empty($panier['ateliers'])) {
+            return response()->json(['message' => 'Le panier est vide.'], 400);
+        }
+
+        // Vérifier la capacité pour tous les ateliers
+        foreach ($panier['ateliers'] as $item) {
+            $atelier = Atelier::find($item['id']);
+            if (!$atelier) {
+                return response()->json(['message' => 'Atelier introuvable: ' . $item['id']], 404);
+            }
+            if ($atelier->remainingCapacity() < $item['quantity']) {
+                return response()->json([
+                    'message' => 'Capacité insuffisante pour l\'atelier: ' . $atelier->nom,
+                    'remaining' => $atelier->remainingCapacity()
+                ], 422);
+            }
+        }
+
+        // Créer les réservations
+        $reservations = [];
+        foreach ($panier['ateliers'] as $item) {
+            $atelier = Atelier::find($item['id']);
+            $prix = ($atelier->prix ?? 0) * $item['quantity'];
+
+            $reservation = new Reservation([
+                'nbPersonne' => $item['quantity'],
+                'prix' => $prix,
+            ]);
+
+            $reservation->client()->associate($client);
+            $reservation->atelier()->associate($atelier);
+
+            $paiement = new Paiement([
+                'numCarte' => $data['numCarte'],
+                'montant' => $prix,
+                'methode_paiement' => $data['methode_paiement'] ?? 'carte',
+                'statut' => 'paye',
+                'payement_recieved_at' => now(),
+            ]);
+
+            $reservation->paiements()->save($paiement);
+            $reservation->save();
+
+            $reservations[] = $reservation;
+        }
+
+        // Vider le panier
+        $client->panier = ['ateliers' => []];
+        $client->save();
+
+        return response()->json([
+            'message' => 'Panier traité avec succès. Réservations créées.',
+            'reservations' => $reservations,
         ], 201);
     }
 }

@@ -24,8 +24,6 @@ class AtelierController extends Controller
 
     public function store(AtelierRequest $request)
     {
-        $this->authorize('create', Atelier::class);
-
         return new AtelierResource(Atelier::create($request->validated()));
     }
 
@@ -54,18 +52,24 @@ class AtelierController extends Controller
         return new AtelierResource($atelier);
     }
 
-    public function update(AtelierRequest $request, Atelier $atelier)
+    public function update(AtelierRequest $request, $id)
     {
-        $this->authorize('update', $atelier);
+        \Log::info('Update atelier', [
+            'id' => $id,
+            'data' => $request->validated()
+        ]);
+
+        $atelier = Atelier::findOrFail($id);
 
         $atelier->update($request->validated());
+
+        \Log::info('Atelier updated', ['atelier' => $atelier]);
 
         return new AtelierResource($atelier);
     }
 
     public function destroy(Atelier $atelier)
     {
-        $this->authorize('delete', $atelier);
 
         $atelier->delete();
 
