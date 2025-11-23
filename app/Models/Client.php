@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model as EloquentModel;
 use MongoDB\Laravel\Eloquent\DocumentModel;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
+use MongoDB\Laravel\Relations\EmbedsMany;
+use MongoDB\Laravel\Relations\EmbedsOne;
 use MongoDB\Laravel\Relations\HasMany;
 
 class Client extends EloquentModel
@@ -24,7 +26,10 @@ class Client extends EloquentModel
     ];
 
     protected $casts = [
-        'panier' => 'array',
+    ];
+
+    protected $attributes = [
+        'panier' => [],
     ];
 
     public function reservations()

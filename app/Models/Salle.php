@@ -25,4 +25,9 @@ class Salle extends EloquentModel
     {
         return $this->belongsTo(Boutique::class);
     }
+
+    public function ateliers()
+    {
+        return $this->hasMany(Atelier::class);
+    }
 }

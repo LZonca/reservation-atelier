@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use MongoDB\Laravel\Eloquent\DocumentModel;
 use MongoDB\Laravel\Eloquent\Model;
 use MongoDB\Laravel\Relations\EmbedsOne;
 
 class Reservation extends Model
 {
     use HasFactory;
+    use DocumentModel;
     protected string $collection = 'reservations';
 
     protected $fillable = [
