@@ -27,6 +27,7 @@ class AtelierFactory extends Factory
             ],
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
+            'vip'=>$this->faker->boolean()
         ];
     }
 }

@@ -29,6 +29,7 @@ class Atelier extends EloquentModel
         'intervenant',
         'created_at',
         'updated_at',
+        'vip'
     ];
 
 
