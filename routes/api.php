@@ -23,7 +23,6 @@ Route::post('/clients/{client}/panier', [ClientController::class, 'addToPanier']
 Route::delete('/clients/{client}/panier', [ClientController::class, 'removeFromPanier'])->name('clients.retirerDuPanier');
 Route::post('/clients/{client}/panier/empty', [ClientController::class, 'emptyPanier'])->name('clients.viderPanier');
 Route::post('/clients/{client}/panier/process', [ClientController::class, 'processPanier'])->name('clients.processPanier');
-Route::delete('/clients/{clientId}/reservations/{reservationId}', [ClientController::class, 'cancelReservation'])->name('clients.cancelReservation');
 
 Route::get('/ateliers', [AtelierController::class, 'index'])->name('ateliers.index');
 Route::get('/ateliers/{atelier}', [AtelierController::class, 'show'])->name('ateliers.show');
@@ -32,6 +31,13 @@ Route::patch('/ateliers/{atelier}', [AtelierController::class, 'update'])->name(
 Route::delete('/ateliers/{atelier}', [AtelierController::class, 'destroy'])->name('ateliers.destroy');
 
 Route::get('/boutiques', [BoutiqueController::class, 'index'])->name('boutiques.index');
+
+Route::post('/atelier/{atelierId}/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+Route::get('/atelier/{atelierId}/reservations', [ReservationController::class, 'index'])->name('reservations.index');
+
+
+//TODO: ANNULER UNE RESERVATION
+
 
 Route::post('/atelier/{atelier}/commentaires', [AtelierController::class, 'addComment'])->name('ateliers.addComment');
 Route::get('/atelier/{atelier}/commentaires', [AtelierController::class, 'getComments'])->name('ateliers.getComments');

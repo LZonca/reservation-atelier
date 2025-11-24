@@ -63,8 +63,8 @@ class Atelier extends EloquentModel
      */
     public function remainingCapacity(): int
     {
-        // Calculer le total des personnes réservées depuis les réservations embedded actives (non soft deleted)
-        $reserved = $this->reservations->whereNull('deleted_at')->sum('nbPersonne');
+        // Calculer le total des personnes réservées depuis les réservations embedded
+        $reserved = $this->reservations->sum('nbPersonne');
 
         $salleCapacite = $this->salle ? ($this->salle->capacite ?? 0) : ($this->capacite ?? 0);
 

@@ -22,7 +22,7 @@ class AtelierResource extends JsonResource
             'intervenant' => new IntervenantResource($this->intervenant),
             'salle' => new SalleResource($this->salle),
             'employe' => new UserResource($this->employe),
-            'reservations' => ReservationResource::collection($this->reservations->whereNull('deleted_at')),
+            'reservations' => ReservationResource::collection($this->reservations),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'vip'=>$this->vip

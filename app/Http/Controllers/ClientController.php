@@ -180,7 +180,7 @@ class ClientController extends Controller
             }
             else if(!($atelier->vip) && $request['methode_paiement']=='credit_fidelite') {
                     return response()->json([
-                    'message' => 'Les crédits de fidélité ne sont utilisables que pour les ateliers VIP. Votre solde de crédit est de :' .$client->credit_fidelite,
+                    'message' => 'Les crédits de fidélité ne sont utilisables que pour les ateliers VIP. Votre solde de crédit est de :' .$client->credit_fidelite, 
                 ], 422);
             }
 
@@ -207,8 +207,10 @@ class ClientController extends Controller
             $reservations[] = $reservation;
         }
 
+
         // Vider le panier
         $client->panier = ['ateliers' => []];
+
 
         $client->save();
 
@@ -216,66 +218,5 @@ class ClientController extends Controller
             'message' => 'Panier traité avec succès. Réservations créées.',
             'reservations' => $reservations,
         ], 201);
-    }
-
-
-    public function cancelReservation($clientId, $reservationId)
-    {
-        // Trouver le client
-        $client = Client::find($clientId);
-        if (!$client) {
-            return response()->json(['message' => 'Client introuvable.'], 404);
-        }
-
-        // Trouver l'atelier qui contient la réservation
-        $atelier = Atelier::where('reservations._id', $reservationId)->first();
-        if (!$atelier) {
-            return response()->json(['message' => 'Réservation introuvable.'], 404);
-        }
-
-        // Trouver la réservation spécifique
-        $reservation = $atelier->reservations->firstWhere('_id', $reservationId);
-        if (!$reservation) {
-            return response()->json(['message' => 'Réservation introuvable.'], 404);
-        }
-
-        // Vérifier que la réservation appartient bien au client
-        if ($reservation->client_id != $clientId) {
-            return response()->json(['message' => 'Cette réservation ne vous appartient pas.'], 403);
-        }
-
-        // Vérifier que la réservation n'est pas déjà annulée
-        if ($reservation->deleted_at) {
-            return response()->json(['message' => 'Cette réservation est déjà annulée.'], 400);
-        }
-
-        // Récupérer le paiement
-        $paiement = $reservation->paiements;
-        $methodePaiement = $paiement ? $paiement->methode_paiement : null;
-        $nbPersonnes = $reservation->nbPersonne;
-
-        // Marquer la réservation comme supprimée (soft delete)
-        $reservation->delete(); // Cela définit deleted_at
-
-        // Marquer le paiement comme remboursé
-        if ($paiement) {
-            $paiement->statut = 'rembourse';
-            $paiement->save();
-        }
-
-        // Rembourser le crédit fidélité si le paiement n'était pas avec crédit fidélité
-        if ($methodePaiement && $methodePaiement != 'credit_fidelite') {
-            $client->credit_fidelite = max(0, $client->credit_fidelite - $nbPersonnes);
-        } elseif ($methodePaiement == 'credit_fidelite') {
-            // Rendre les 10 points de crédit fidélité utilisés
-            $client->credit_fidelite += 10;
-        }
-
-        $client->save();
-
-        return response()->json([
-            'message' => 'Réservation annulée avec succès.',
-            'credit_fidelite_restant' => $client->credit_fidelite,
-        ], 200);
     }
 }
