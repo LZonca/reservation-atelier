@@ -27,7 +27,6 @@ Route::post('/clients/{client}/panier/process', [ClientController::class, 'proce
 Route::get('/ateliers', [AtelierController::class, 'index'])->name('ateliers.index');
 Route::get('/ateliers/{atelier}', [AtelierController::class, 'show'])->name('ateliers.show');
 Route::post('/ateliers', [AtelierController::class, 'store'])->name('ateliers.store');
-// NOTE: Ensure AtelierController@update handles partial updates correctly (PATCH expects only changed fields)
 Route::patch('/ateliers/{atelier}', [AtelierController::class, 'update'])->name('ateliers.update');
 Route::delete('/ateliers/{atelier}', [AtelierController::class, 'destroy'])->name('ateliers.destroy');
 
@@ -36,6 +35,8 @@ Route::get('/boutiques', [BoutiqueController::class, 'index'])->name('boutiques.
 Route::post('/atelier/{atelierId}/reservations', [ReservationController::class, 'store'])->name('reservations.store');
 Route::get('/atelier/{atelierId}/reservations', [ReservationController::class, 'index'])->name('reservations.index');
 
+
+//TODO: ANNULER UNE RESERVATION
 
 
 Route::post('/atelier/{atelier}/commentaires', [AtelierController::class, 'addComment'])->name('ateliers.addComment');

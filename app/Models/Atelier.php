@@ -63,7 +63,8 @@ class Atelier extends EloquentModel
      */
     public function remainingCapacity(): int
     {
-        $reserved = \App\Models\Reservation::where('atelier_id', $this->id)->sum('nbPersonne');
+        // Calculer le total des personnes réservées depuis les réservations embedded
+        $reserved = $this->reservations->sum('nbPersonne');
 
         $salleCapacite = $this->salle ? ($this->salle->capacite ?? 0) : ($this->capacite ?? 0);
 

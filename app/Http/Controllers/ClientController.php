@@ -137,7 +137,7 @@ class ClientController extends Controller
         $data = $request->validate([
             'numCarte' => ['required', 'string'],
             'methode_paiement' => ['nullable', 'string', 'in:carte,virement,paypal,credit_fidelite'],
-            
+
         ]);
 
         $panier = $client->panier;
@@ -148,7 +148,7 @@ class ClientController extends Controller
 
 
 
-    
+
         // Vérifier la capacité pour tous les ateliers
         foreach ($panier['ateliers'] as $item) {
             $atelier = Atelier::find($item['id']);
@@ -173,36 +173,34 @@ class ClientController extends Controller
                 $prix = 0;
                 $client->credit_fidelite -=10;
             }
-            $reservation = new Reservation([
+
+            // Créer la réservation embedded dans l'atelier
+            $reservation = $atelier->reservations()->create([
                 'nbPersonne' => $item['quantity'],
                 'prix' => $prix,
+                'client_id' => $client->id,
             ]);
 
-            $reservation->client()->associate($client);
-            $reservation->atelier()->associate($atelier);
-
-            $paiement = new Paiement([
+            // Créer le paiement embedded dans la réservation
+            $reservation->paiements()->create([
                 'numCarte' => $data['numCarte'],
                 'montant' => $prix,
                 'methode_paiement' => $data['methode_paiement'] ?? "carte",
                 'statut' => 'paye',
                 'payement_recieved_at' => now(),
             ]);
-            
 
-            $reservation->paiements()->save($paiement);
-            $reservation->save();
             if( $request['methode_paiement']!='credit_fidelite'){
                 $client->credit_fidelite += $item['quantity'] ;
             }
-           
+
             $reservations[] = $reservation;
         }
 
-       
+
         // Vider le panier
         $client->panier = ['ateliers' => []];
-   
+
 
         $client->save();
 

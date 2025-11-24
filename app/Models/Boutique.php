@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model as EloquentModel;
 use MongoDB\Laravel\Eloquent\DocumentModel;
 use MongoDB\Laravel\Relations\EmbedsOne;
+use MongoDB\Laravel\Relations\HasMany;
 
 class Boutique extends EloquentModel
 {
@@ -30,6 +31,10 @@ class Boutique extends EloquentModel
         return $this->embedsOne(Adresse::class);
     }
 
+    public function salles(): hasMany
+    {
+        return $this->hasMany(Salle::class);
+    }
 
 }
 
