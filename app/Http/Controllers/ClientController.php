@@ -173,6 +173,16 @@ class ClientController extends Controller
                 $prix = 0;
                 $client->credit_fidelite -=10;
             }
+            else if($atelier->vip && $request['methode_paiement']!='credit_fidelite') {
+                    return response()->json([
+                    'message' => 'Le moyen de paiement doit être des crédits de fidélité pour l\'atelier :' . $atelier->nom,
+                ], 422);
+            }
+            else if(!($atelier->vip) && $request['methode_paiement']=='credit_fidelite') {
+                    return response()->json([
+                    'message' => 'Les crédits de fidélité ne sont utilisables que pour les ateliers VIP. Votre solde de crédit est de :' .$client->credit_fidelite, 
+                ], 422);
+            }
 
             // Créer la réservation embedded dans l'atelier
             $reservation = $atelier->reservations()->create([
