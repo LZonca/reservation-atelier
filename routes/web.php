@@ -4,9 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\AtelierDisplay;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', AtelierDisplay::class)->name('home');
 
 // Route::get('/ateliers', AtelierDisplay::class)->name('ateliers.index');
 
