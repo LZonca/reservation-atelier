@@ -16,6 +16,7 @@ class Reservation extends Model
     protected $fillable = [
         'prix',
         'nbPersonne',
+        'client_id',
     ];
 
     public function atelier()
