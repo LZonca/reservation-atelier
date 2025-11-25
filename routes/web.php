@@ -6,7 +6,8 @@ use App\Livewire\AtelierDisplay;
 
 Route::get('/', AtelierDisplay::class)->name('home');
 
-// Route::get('/ateliers', AtelierDisplay::class)->name('ateliers.index');
+Route::get('/ateliers', AtelierDisplay::class)->name('ateliers.index');
+Route::get('/test', \App\Livewire\TestFetch::class)->name('test');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
