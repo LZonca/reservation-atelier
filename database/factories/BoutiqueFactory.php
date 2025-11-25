@@ -12,11 +12,11 @@ class BoutiqueFactory extends Factory
     public function definition(): array
     {
         return [
-            'nom' => $this->faker->word(),
+            'nom' => $this->faker->company(),
             'adresse' => [
-                'rue'=>$this->faker->word(),
+                'rue'=>$this->faker->streetName(),
                 'numero'=> $this->faker->numberBetween(1, 49),
-                'ville'=>$this->faker->word(),
+                'ville'=>$this->faker->city(),
                 'code_postal'=>$this->faker->postcode(),
             ],
             'created_at' => Carbon::now(),

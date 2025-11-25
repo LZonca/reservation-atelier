@@ -13,7 +13,7 @@ class AtelierFactory extends Factory
     public function definition(): array
     {
         return [
-            'nom' => $this->faker->word(),
+            'nom' => $this->faker->word,
             'date' => Carbon::now(),
             'description' => $this->faker->sentence(),
             'duree' => $this->faker->numberBetween(1, 8),

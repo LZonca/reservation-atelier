@@ -17,8 +17,6 @@ class SalleSeeder extends Seeder
             return;
         }
 
-        $this->command->info('🏢 Création des salles...');
-
         // Salles avec des noms spécifiques
         $salles = [
             ['nom' => 'Salle A', 'capacite' => 20, 'categorie' => 'Potterie','boutique'=>$boutique->random()],
@@ -34,12 +32,5 @@ class SalleSeeder extends Seeder
 
         // Salles aléatoires supplémentaires
         Salle::factory(5)->create();
-
-        $this->command->info("   ✓ {$this->getSalleCount()} salles créées");
-    }
-
-    private function getSalleCount(): int
-    {
-        return Salle::count();
     }
 }

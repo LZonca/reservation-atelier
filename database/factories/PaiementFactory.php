@@ -13,7 +13,7 @@ class PaiementFactory extends Factory
     public function definition(): array
     {
         return [
-            'numCarte' => $this->faker->word(),
+            'numCarte' => $this->faker->creditCardNumber(),
             'montant' => $this->faker->randomFloat(),
             'statut' => $this->faker->word(),
             'created_at' => Carbon::now(),
