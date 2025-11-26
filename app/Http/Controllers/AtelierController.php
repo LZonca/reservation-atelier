@@ -61,7 +61,21 @@ class AtelierController extends Controller
 
         $atelier = Atelier::findOrFail($id);
 
-        $atelier->update($request->validated());
+        // Normaliser les données pour la mise à jour
+        $data = $request->validated();
+
+        // si vip n'est pas envoyé (checkbox non coché), on force false
+        if (!array_key_exists('vip', $data)) {
+            // si le champ vient via request mais vide, on le laisse, sinon on force false
+            $data['vip'] = $request->has('vip') ? $request->input('vip') : false;
+        }
+
+        // s'assurer que prix est bien numérique si fourni
+        if (array_key_exists('prix', $data)) {
+            $data['prix'] = is_numeric($data['prix']) ? (float) $data['prix'] : $data['prix'];
+        }
+
+        $atelier->update($data);
 
         \Log::info('Atelier updated', ['atelier' => $atelier]);
 

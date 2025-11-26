@@ -16,9 +16,33 @@
                         </div>
                         <div class="text-indigo-600 text-3xl">🎨</div>
                     </div>
-                    <a href="{{ route('ateliers.index') }}" class="mt-4 inline-block text-sm text-indigo-600">Gérer les ateliers</a>
+                    <a href="{{ url('/ateliers') }}" class="mt-4 inline-block text-sm text-indigo-600">Gérer les ateliers</a>
                 </div>
 
+                <div class="p-6 bg-white rounded-lg shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm text-gray-500">Salles</div>
+                            <div class="text-3xl font-bold">{{ number_format($salles ?? 0) }}</div>
+                        </div>
+                        <div class="text-green-600 text-3xl">🏢</div>
+                    </div>
+                    <a href="{{ url('/salles') }}" class="mt-4 inline-block text-sm text-green-600">Gérer les salles</a>
+                </div>
+
+                <div class="p-6 bg-white rounded-lg shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-sm text-gray-500">Boutiques</div>
+                            <div class="text-3xl font-bold">{{ number_format($boutiques ?? 0) }}</div>
+                        </div>
+                        <div class="text-indigo-600 text-3xl">🏬</div>
+                    </div>
+                    <a href="{{ url('/boutiques') }}" class="mt-4 inline-block text-sm text-indigo-600">Gérer les boutiques</a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="p-6 bg-white rounded-lg shadow-sm">
                     <div class="flex items-center justify-between">
                         <div>
@@ -27,7 +51,6 @@
                         </div>
                         <div class="text-indigo-600 text-3xl">📅</div>
                     </div>
-                    <a href="{{ url('/atelier') }}" class="mt-4 inline-block text-sm text-indigo-600">Voir les réservations</a>
                 </div>
 
                 <div class="p-6 bg-white rounded-lg shadow-sm">
@@ -38,7 +61,7 @@
                         </div>
                         <div class="text-indigo-600 text-3xl">👥</div>
                     </div>
-                    <a href="{{ route('clients.index') }}" class="mt-4 inline-block text-sm text-indigo-600">Gérer les clients</a>
+                    <a href="{{ route('api.clients.index') }}" class="mt-4 inline-block text-sm text-indigo-600">Gérer les clients</a>
                 </div>
             </div>
 
@@ -53,7 +76,7 @@
                                         <div class="font-semibold">{{ $atelier->titre ?? ($atelier->name ?? 'Atelier') }}</div>
                                         <div class="text-sm text-gray-500">{{ optional($atelier->created_at)->diffForHumans() ?? '' }} — {{ Str::limit($atelier->description ?? '', 80) }}</div>
                                     </div>
-                                    <a href="{{ route('ateliers.show', ['atelier' => $atelier->_id ?? $atelier->id ?? $atelier->getKey()]) }}" class="text-indigo-600 text-sm">Voir</a>
+                                    <a href="{{ url('/ateliers/' . ($atelier->_id ?? $atelier->id ?? $atelier->getKey())) }}" class="text-indigo-600 text-sm">Voir</a>
                                 </li>
                             @endforeach
                         </ul>
@@ -62,7 +85,7 @@
                     @endif
 
                     <div class="mt-6">
-                        <a href="{{ route('ateliers.index') }}" class="text-sm text-indigo-600">Voir tous les ateliers</a>
+                        <a href="{{ url('/ateliers') }}" class="text-sm text-indigo-600">Voir tous les ateliers</a>
                     </div>
                 </section>
 
@@ -79,22 +102,23 @@
                         @endforeach
                     </ul>
 
-                    <h3 class="text-lg font-medium text-gray-900 mt-6 mb-4">Dernières réservations</h3>
-                    @if(!empty($recentReservations) && $recentReservations->count())
-                        <ul class="space-y-3 text-sm">
-                            @foreach($recentReservations as $res)
-                                <li class="border rounded p-2">
-                                    <div class="font-semibold">{{ $res->client->name ?? ($res->client_name ?? 'Client') }} — <span class="text-gray-500">{{ $res->atelier->titre ?? ($res->atelier->name ?? 'Atelier') }}</span></div>
-                                    <div class="text-xs text-gray-500">{{ optional($res->created_at)->diffForHumans() }}</div>
+                    <h3 class="text-lg font-medium text-gray-900 mt-6 mb-2">Dernières boutiques</h3>
+                    @if(!empty($recentBoutiques) && $recentBoutiques->count())
+                        <ul class="space-y-2 text-sm">
+                            @foreach($recentBoutiques as $boutique)
+                                <li class="flex items-center justify-between">
+                                    <div class="text-gray-700">{{ $boutique->nom ?? 'Boutique' }}</div>
+                                    <a href="{{ url('/boutiques/' . ($boutique->_id ?? $boutique->id ?? $boutique->getKey())) }}" class="text-indigo-600 text-sm">Voir</a>
                                 </li>
                             @endforeach
                         </ul>
                     @else
-                        <p class="text-sm text-gray-500">Aucune réservation récente.</p>
+                        <p class="text-sm text-gray-500">Aucune boutique récente.</p>
                     @endif
 
-                </aside>
-            </div>
-        </div>
-    </div>
-</x-app-layout>
+                     @include('partials.mini-postman')
+                 </aside>
+             </div>
+         </div>
+     </div>
+ </x-app-layout>
