@@ -16,7 +16,6 @@ class Boutique extends EloquentModel
     use HasFactory;
     use DocumentModel;
 
-    // Use the MongoDB connection and specify collection name
     protected $connection = 'mongodb';
     protected string $collection = 'boutique';
 
@@ -31,9 +30,8 @@ class Boutique extends EloquentModel
         return $this->embedsOne(Adresse::class);
     }
 
-    public function salles(): hasMany
-    {
-        return $this->hasMany(Salle::class);
+    public function infoContact(): EmbedsOne{
+        return $this->embedsOne(InfoContact::class);
     }
 
 }

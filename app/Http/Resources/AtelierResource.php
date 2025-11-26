@@ -9,7 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /** @mixin Atelier */
 class AtelierResource extends JsonResource
 {
-    public static $wrap = 'atelier';
+    public static $wrap = 'ateliers';
     public function toArray(Request $request): array
     {
         return [
@@ -20,6 +20,7 @@ class AtelierResource extends JsonResource
             'duree' => $this->duree,
             'prix' => $this->prix,
             'intervenant' => new IntervenantResource($this->intervenant),
+            'category' => $this->category,
             'salle' => new SalleResource($this->salle),
             'employe' => new UserResource($this->employe),
             'reservations' => ReservationResource::collection($this->reservations),

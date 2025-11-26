@@ -17,7 +17,7 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, DocumentModel;
-
+ // TODO: ajouter les relations avec les boutiques linked
     protected $connection = 'mongodb';
     protected string $collection = 'employes';
 
@@ -45,6 +45,10 @@ class User extends Authenticatable
 
     public function ateliers(): HasMany{
         return $this->HasMany(Atelier::class);
+    }
+
+    public function boutique(): HasOne{
+        return $this->HasOne(Boutique::class);
     }
 
 

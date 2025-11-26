@@ -1,10 +1,17 @@
 <?php
 
+// ============================================
+// Database/Factories/AtelierFactory.php
+// ============================================
+
 namespace Database\Factories;
 
 use App\Models\Atelier;
+use App\Models\User;
+use App\Models\Salle;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
+use MongoDB\BSON\ObjectId;
 
 class AtelierFactory extends Factory
 {
@@ -13,21 +20,78 @@ class AtelierFactory extends Factory
     public function definition(): array
     {
         return [
-            'nom' => $this->faker->word,
-            'date' => Carbon::now(),
-            'description' => $this->faker->sentence(),
+            'nom' => $this->faker->words(3, true),
+            'date' => Carbon::now()->addDays($this->faker->numberBetween(1, 60)),
+            'description' => $this->faker->sentence(10),
             'duree' => $this->faker->numberBetween(1, 8),
             'prix' => $this->faker->randomFloat(2, 10, 100),
-            'employe_id' => null,
+            'category' => $this->faker->randomElement([
+                'Cuisine',
+                'Art',
+                'Sport',
+                'Musique',
+                'Technologie',
+                'Bien-être'
+            ]),
             'intervenant' => [
                 'nom' => $this->faker->lastName(),
                 'prenom' => $this->faker->firstName(),
                 'email' => $this->faker->unique()->safeEmail(),
                 'telephone' => $this->faker->phoneNumber(),
             ],
+            'vip' => $this->faker->boolean(30), // 30% de chances d'être VIP
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
-            'vip'=>$this->faker->boolean()
         ];
+    }
+
+    /**
+     * Configure le factory pour assigner automatiquement un employé
+     */
+    public function withEmploye(?User $employe = null): static
+    {
+        return $this->state(function (array $attributes) use ($employe) {
+            $user = $employe ?? User::inRandomOrder()->first();
+
+            return [
+                'employe_id' => $user ? new ObjectId((string) $user->_id) : null,
+            ];
+        });
+    }
+
+    /**
+     * Configure le factory pour assigner automatiquement une salle
+     */
+    public function withSalle(?Salle $salle = null): static
+    {
+        return $this->state(function (array $attributes) use ($salle) {
+            $room = $salle ?? Salle::inRandomOrder()->first();
+
+            return [
+                'salle_id' => $room ? new ObjectId((string) $room->_id) : null,
+            ];
+        });
+    }
+
+    /**
+     * Atelier VIP
+     */
+    public function vip(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'vip' => true,
+            'prix' => $this->faker->randomFloat(2, 100, 500),
+        ]);
+    }
+
+    /**
+     * Atelier gratuit
+     */
+    public function gratuit(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'prix' => 0,
+            'vip' => false,
+        ]);
     }
 }

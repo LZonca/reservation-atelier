@@ -1,22 +1,16 @@
 <?php
 
-declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use MongoDB\Laravel\Eloquent\Model as EloquentModel;
-use MongoDB\Laravel\Eloquent\DocumentModel;
-use MongoDB\Laravel\Relations\BelongsTo;
-use MongoDB\Laravel\Relations\EmbedsMany;
-use MongoDB\Laravel\Relations\HasMany;
+use MongoDB\Laravel\Eloquent\Model;
+use MongoDB\BSON\ObjectId;
 
-class Atelier extends EloquentModel
+class Atelier extends Model
 {
     use HasFactory;
-    use DocumentModel;
-
     protected $connection = 'mongodb';
-    protected string $collection = 'ateliers';
+    protected $collection = 'ateliers';
 
     protected $fillable = [
         'nom',
@@ -24,57 +18,63 @@ class Atelier extends EloquentModel
         'description',
         'duree',
         'prix',
-        'salle_id',
         'employe_id',
+        'salle_id',
+        'category',
         'intervenant',
-        'created_at',
-        'updated_at',
-        'vip'
+        'vip',
     ];
 
+    protected $casts = [
+        'date' => 'datetime',
+        'duree' => 'integer',
+        'prix' => 'float',
+        'vip' => 'boolean',
+        'intervenant' => 'array',
+    ];
 
-    public function reservations(): EmbedsMany
+    /**
+     * Conversion automatique des IDs en ObjectId
+     */
+    public function setAttribute($key, $value)
     {
-        return $this->embedsMany(Reservation::class);
-    }
+        if (in_array($key, ['employe_id', 'salle_id']) && $value !== null) {
+            try {
+                if (!$value instanceof ObjectId) {
+                    $value = new ObjectId((string) $value);
+                }
+            } catch (\Exception $e) {
+                \Log::warning("Impossible de convertir {$key} en ObjectId", [
+                    'value' => $value,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
 
-    public function employe(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
-
-    public function intervenant()
-    {
-        return $this->embedsOne(Intervenant::class);
-    }
-
-    public function salle(): BelongsTo
-    {
-        return $this->belongsTo(Salle::class);
-    }
-
-    public function commentaires(): HasMany
-    {
-        return $this->hasMany(Commentaire::class);
+        return parent::setAttribute($key, $value);
     }
 
     /**
-     * Calcule la capacité restante en prenant la capacité de la salle.
+     * Relations
      */
-    public function remainingCapacity(): int
+    public function employe()
     {
-        // Calculer le total des personnes réservées depuis les réservations embedded
-        $reserved = $this->reservations->sum('nbPersonne');
-
-        $salleCapacite = $this->salle ? ($this->salle->capacite ?? 0) : ($this->capacite ?? 0);
-
-        return max(0, $salleCapacite - $reserved);
+        return $this->belongsTo(User::class, 'employe_id');
     }
 
-    protected function casts(): array
+    public function salle()
     {
-        return [
-            'date' => 'datetime',
-        ];
+        return $this->belongsTo(Salle::class, 'salle_id');
     }
+
+    public function commentaires()
+    {
+        return $this->hasMany(Commentaire::class, 'atelier_id');
+    }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class, 'client_id');
+    }
+
 }

@@ -19,6 +19,19 @@ class BoutiqueFactory extends Factory
                 'ville'=>$this->faker->city(),
                 'code_postal'=>$this->faker->postcode(),
             ],
+            'infoContact' => [
+                'email'=>$this->faker->unique()->safeEmail(),
+                'telephone'=>$this->faker->phoneNumber(),
+
+                // Les réseaux sociaux sont optionnels : certaines boutiques ne les auront pas
+                'website' => $this->faker->optional(0.7)->url(),
+                'youtube' => $this->faker->optional(0.4)->url(),
+                'instagram' => $this->faker->optional(0.7)->url(),
+                'facebook' => $this->faker->optional(0.7)->url(),
+                'twitter' => $this->faker->optional(0.4)->url(),
+                'pinterest' => $this->faker->optional(0.6)->url(),
+                'bluesky' => $this->faker->optional(0.3)->url
+            ],
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ];

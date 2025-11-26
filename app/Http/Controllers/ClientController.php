@@ -180,7 +180,7 @@ class ClientController extends Controller
             }
             else if(!($atelier->vip) && $request['methode_paiement']=='credit_fidelite') {
                     return response()->json([
-                    'message' => 'Les crédits de fidélité ne sont utilisables que pour les ateliers VIP. Votre solde de crédit est de :' .$client->credit_fidelite, 
+                    'message' => 'Les crédits de fidélité ne sont utilisables que pour les ateliers VIP. Votre solde de crédit est de :' .$client->credit_fidelite,
                 ], 422);
             }
 
@@ -188,7 +188,7 @@ class ClientController extends Controller
             $reservation = $atelier->reservations()->create([
                 'nbPersonne' => $item['quantity'],
                 'prix' => $prix,
-                'client_id' => $client->id,
+                'client_id' => (string) $client->id,  // Forcer en string pour faciliter les recherches
             ]);
 
             // Créer le paiement embedded dans la réservation
