@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('employes', function (Blueprint $table) {
+        Schema::table('users', function (Blueprint $table) {
             $table->text('two_factor_secret')
                 ->nullable();
 

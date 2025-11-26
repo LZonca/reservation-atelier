@@ -17,6 +17,7 @@ class BoutiqueRessource extends JsonResource
         return [
             'nom' => $this->nom,
             'adresse' => new AdresseRessource($this->adresse),
+            'info_contact' => new InfoContactResource($this->infoContact),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

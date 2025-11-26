@@ -1,25 +1,42 @@
 <?php
 
+// ============================================
+// Database/Seeders/ReservationSeeder.php
+// ============================================
+
 namespace Database\Seeders;
 
 use App\Models\Atelier;
 use App\Models\Client;
 use Illuminate\Database\Seeder;
+use MongoDB\BSON\ObjectId;
 
 class ReservationSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->command->info('📅 Création des réservations et paiements...');
+
+        // Vérifier que les dépendances existent
         $ateliers = Atelier::all();
         $clients = Client::all();
 
-        if ($ateliers->isEmpty() || $clients->isEmpty()) {
-            $this->command->error('   ✗ Erreur : Des ateliers et clients doivent exister');
+        if ($ateliers->isEmpty()) {
+            $this->command->error('   ✗ Erreur : Aucun atelier trouvé. Exécutez AtelierSeeder d\'abord.');
             return;
         }
 
+        if ($clients->isEmpty()) {
+            $this->command->error('   ✗ Erreur : Aucun client trouvé. Exécutez ClientSeeder d\'abord.');
+            return;
+        }
+
+        $this->command->info("   → {$ateliers->count()} ateliers disponibles");
+        $this->command->info("   → {$clients->count()} clients disponibles");
+
         $totalReservations = 0;
         $totalPaiements = 0;
+        $totalMontant = 0;
 
         foreach ($ateliers as $atelier) {
             $nbReservations = rand(2, 6);
@@ -27,16 +44,22 @@ class ReservationSeeder extends Seeder
             foreach (range(1, $nbReservations) as $i) {
                 $client = $clients->random();
                 $nbPersonnes = rand(1, 4);
+                $prixTotal = $atelier->prix * $nbPersonnes;
 
+                // Créer la réservation avec ObjectId explicites
                 $reservation = $atelier->reservations()->create([
-                    'prix' => $atelier->prix * $nbPersonnes,
+                    'prix' => $prixTotal,
                     'nbPersonne' => $nbPersonnes,
-                    'client_id' => $client->id,
+                    'client_id' => new ObjectId((string) $client->_id),
+                    'atelier_id' => new ObjectId((string) $atelier->_id),
                 ]);
 
+                $totalReservations++;
+                $totalMontant += $prixTotal;
+
+                // Créer les paiements
                 $nbPaiements = rand(1, 3);
-                $montantTotal = $reservation->prix;
-                $montantRestant = $montantTotal;
+                $montantRestant = $prixTotal;
 
                 for ($j = 0; $j < $nbPaiements; $j++) {
                     $estDernier = ($j === $nbPaiements - 1);
@@ -52,10 +75,26 @@ class ReservationSeeder extends Seeder
                         'payement_recieved_at' => now()->subDays(rand(0, 60)),
                         'methode_paiement' => $this->getRandomPaymentMethod(),
                         'statut' => $this->getRandomPaymentStatus(),
+                        'reservation_id' => new ObjectId((string) $reservation->_id),
                     ]);
+
+                    $totalPaiements++;
                 }
             }
         }
+
+        $this->command->info("   ✓ {$totalReservations} réservations créées");
+        $this->command->info("   ✓ {$totalPaiements} paiements créés");
+        $this->command->info("   → Montant total des réservations : " . number_format($totalMontant, 2) . " €");
+
+        // Statistiques par statut de paiement
+        $validesCount = \App\Models\Paiement::where('statut', 'validé')->count();
+        $attenteCount = \App\Models\Paiement::where('statut', 'en_attente')->count();
+        $refusesCount = \App\Models\Paiement::where('statut', 'refusé')->count();
+
+        $this->command->info("   → Paiements validés : {$validesCount}");
+        $this->command->info("   → Paiements en attente : {$attenteCount}");
+        $this->command->info("   → Paiements refusés : {$refusesCount}");
     }
 
     private function generateCardNumber(): string

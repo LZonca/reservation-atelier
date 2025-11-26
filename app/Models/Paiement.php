@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model;
-use MongoDB\Laravel\Eloquent\DocumentModel;
+use MongoDB\BSON\ObjectId;
 
 class Paiement extends Model
 {
-    use HasFactory, DocumentModel;
+    protected $connection = 'mongodb';
+    protected $collection = 'paiements';
 
     protected $fillable = [
         'numCarte',
@@ -16,12 +16,40 @@ class Paiement extends Model
         'payement_recieved_at',
         'methode_paiement',
         'statut',
-        'created_at',
-        'updated_at',
+        'reservation_id',
     ];
 
     protected $casts = [
+        'montant' => 'float',
         'payement_recieved_at' => 'datetime',
-        'montant' => 'decimal:2',
     ];
+
+    /**
+     * Conversion automatique de reservation_id en ObjectId
+     */
+    public function setAttribute($key, $value)
+    {
+        if ($key === 'reservation_id' && $value !== null) {
+            try {
+                if (!$value instanceof ObjectId) {
+                    $value = new ObjectId((string) $value);
+                }
+            } catch (\Exception $e) {
+                \Log::warning("Impossible de convertir reservation_id en ObjectId", [
+                    'value' => $value,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
+
+        return parent::setAttribute($key, $value);
+    }
+
+    /**
+     * Relations
+     */
+    public function reservation()
+    {
+        return $this->belongsTo(Reservation::class, 'reservation_id');
+    }
 }

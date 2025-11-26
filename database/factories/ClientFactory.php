@@ -13,8 +13,8 @@ class ClientFactory extends Factory
     public function definition(): array
     {
         return [
-            'nom' => $this->faker->word(),
-            'prenom' => $this->faker->word(),
+            'nom' => $this->faker->lastName(),
+            'prenom' => $this->faker->firstName(),
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
             'created_at' => Carbon::now(),

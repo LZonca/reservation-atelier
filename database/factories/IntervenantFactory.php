@@ -13,10 +13,10 @@ class IntervenantFactory extends Factory
     public function definition(): array
     {
         return [
-            'nom' => $this->faker->word(),
-            'prenom' => $this->faker->word(),
+            'nom' => $this->faker->firstName(),
+            'prenom' => $this->faker->lastName(),
             'email' => $this->faker->unique()->safeEmail(),
-            'telephone' => $this->faker->word(),
+            'telephone' => $this->faker->phoneNumber(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ];
