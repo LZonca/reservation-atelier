@@ -50,9 +50,9 @@ class ClientsDisplay extends Component
             foreach ($this->ateliers as $atelier) {
                 foreach ($atelier->reservations ?? [] as $res) {
                     foreach ($res['paiements'] ?? [] as $pay) {
-                        $pid = data_get($pay, '_id') ?? data_get($pay, 'id') ?? ($pay['_id'] ?? ($pay['id'] ?? null));
+                        $pid = data_get($pay, '_id') ?? data_get($pay, 'id');
                         if ($pid) {
-                            $this->paymentStatus[(string)$pid] = data_get($pay, 'statut') ?? data_get($pay, 'status') ?? null;
+                            $this->paymentStatus[(string)$pid] = data_get($pay, 'statut') ?? data_get($pay, 'status');
                         }
                     }
                 }
@@ -65,7 +65,11 @@ class ClientsDisplay extends Component
     public function openClientModal($id)
     {
         $this->selectedClient = Client::with('commentaires')->find($id);
-        $this->panier = $this->selectedClient->panier ?? ['ateliers' => []];
+
+        // Convertir les ObjectId du panier en string pour l'UI Livewire
+        $panierFromDb = $this->selectedClient->panier ?? ['ateliers' => []];
+        $this->panier = $this->convertPanierIdsToString($panierFromDb);
+
         $this->numCarte = '';
         $this->methodePaiement = 'carte';
         $this->showPanierSection = false;
@@ -136,9 +140,14 @@ class ClientsDisplay extends Component
         $data = [
             'commentaire' => $this->newComment['commentaire'],
             'note' => $this->newComment['note'] ?? null,
-            'atelier_id' => $atelierId,
-            'client_id' => $this->selectedClient->_id ?? $this->selectedClient->id,
         ];
+
+        // Convertir les IDs en ObjectId
+        if ($atelierId) {
+            $data['atelier_id'] = new ObjectId((string) $atelierId);
+        }
+
+        $data['client_id'] = new ObjectId((string) ($this->selectedClient->_id ?? $this->selectedClient->id));
 
         try {
             $created = $this->selectedClient->commentaires()->create($data);
@@ -204,7 +213,7 @@ class ClientsDisplay extends Component
 
         if (!$found) {
             $this->panier['ateliers'][] = [
-                'id' => $atelierId,
+                'id' => (string) $atelierId, // Garder en string pour l'UI
                 'quantity' => 1,
                 'nom' => $atelier->nom,
                 'prix' => $atelier->prix ?? 0,
@@ -212,8 +221,9 @@ class ClientsDisplay extends Component
             ];
         }
 
-        // Sauvegarder dans la base de données
-        $this->selectedClient->panier = $this->panier;
+        // Convertir les IDs en ObjectId avant sauvegarde
+        $panierToSave = $this->convertPanierIdsToObjectId($this->panier);
+        $this->selectedClient->panier = $panierToSave;
         $this->selectedClient->save();
 
         session()->flash('success', 'Atelier ajouté au panier.');
@@ -235,7 +245,9 @@ class ClientsDisplay extends Component
         }
         unset($item);
 
-        $this->selectedClient->panier = $this->panier;
+        // Convertir les IDs en ObjectId avant sauvegarde
+        $panierToSave = $this->convertPanierIdsToObjectId($this->panier);
+        $this->selectedClient->panier = $panierToSave;
         $this->selectedClient->save();
     }
 
@@ -246,7 +258,9 @@ class ClientsDisplay extends Component
             return $itemId != $atelierId;
         }));
 
-        $this->selectedClient->panier = $this->panier;
+        // Convertir les IDs en ObjectId avant sauvegarde
+        $panierToSave = $this->convertPanierIdsToObjectId($this->panier);
+        $this->selectedClient->panier = $panierToSave;
         $this->selectedClient->save();
 
         session()->flash('success', 'Atelier retiré du panier.');
@@ -259,6 +273,53 @@ class ClientsDisplay extends Component
         $this->selectedClient->save();
 
         session()->flash('success', 'Panier vidé.');
+    }
+
+    /**
+     * Convertir les IDs du panier en ObjectId pour la sauvegarde
+     */
+    private function convertPanierIdsToObjectId($panier)
+    {
+        if (!isset($panier['ateliers']) || empty($panier['ateliers'])) {
+            return $panier;
+        }
+
+        $converted = $panier;
+        foreach ($converted['ateliers'] as &$item) {
+            if (isset($item['id']) && !$item['id'] instanceof ObjectId) {
+                try {
+                    $item['id'] = new ObjectId((string) $item['id']);
+                } catch (\Exception $e) {
+                    Log::warning('[ClientsDisplay] Impossible de convertir atelier_id en ObjectId', [
+                        'id' => $item['id'],
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        }
+        unset($item);
+
+        return $converted;
+    }
+
+    /**
+     * Convertir les ObjectId du panier en string pour l'UI
+     */
+    private function convertPanierIdsToString($panier)
+    {
+        if (!isset($panier['ateliers']) || empty($panier['ateliers'])) {
+            return $panier;
+        }
+
+        $converted = $panier;
+        foreach ($converted['ateliers'] as &$item) {
+            if (isset($item['id']) && $item['id'] instanceof ObjectId) {
+                $item['id'] = (string) $item['id'];
+            }
+        }
+        unset($item);
+
+        return $converted;
     }
 
     public function getTotalPanier()
@@ -336,10 +397,11 @@ class ClientsDisplay extends Component
                     return;
                 }
 
-                // Créer les paiements
+                // Créer les paiements embarqués avec ObjectId
+                $paiementId = new ObjectId();
                 $paiements = [];
                 $paiements[] = [
-                    '_id' => new ObjectId(),
+                    '_id' => $paiementId,
                     'numCarte' => $this->numCarte,
                     'montant' => $prix,
                     'methode_paiement' => $this->methodePaiement,
@@ -349,9 +411,10 @@ class ClientsDisplay extends Component
                     'updated_at' => now(),
                 ];
 
-                // Créer la réservation avec paiements embarqués
+                // Créer la réservation avec paiements embarqués et ObjectId
+                $reservationId = new ObjectId();
                 $reservationData = [
-                    '_id' => new ObjectId(),
+                    '_id' => $reservationId,
                     'nbPersonne' => $item['quantity'],
                     'prix' => $prix,
                     'client_id' => new ObjectId((string) $this->selectedClient->_id),
@@ -384,7 +447,8 @@ class ClientsDisplay extends Component
             // Recharger le client pour afficher les nouvelles données
             $this->selectedClient->refresh();
 
-            session()->flash('success', "Paiement effectué avec succès! " . count($reservations) . " réservation(s) créée(s). Crédits de fidélité: {$this->selectedClient->credit_fidelite}");
+            $totalReservations = count($reservations);
+            session()->flash('success', "Paiement effectué avec succès! {$totalReservations} réservation(s) créée(s). Crédits de fidélité: {$this->selectedClient->credit_fidelite}");
 
         } catch (\Exception $e) {
             Log::error('[ClientsDisplay] Erreur traitement panier: ' . $e->getMessage(), [
