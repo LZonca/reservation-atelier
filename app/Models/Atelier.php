@@ -9,6 +9,7 @@ use MongoDB\Laravel\Eloquent\DocumentModel;
 use MongoDB\Laravel\Relations\BelongsTo;
 use MongoDB\Laravel\Relations\EmbedsMany;
 use MongoDB\Laravel\Relations\HasMany;
+use MongoDB\Laravel\Relations\HasOne;
 
 class Atelier extends EloquentModel
 {
@@ -40,7 +41,6 @@ class Atelier extends EloquentModel
         'vip' => 'boolean',
         'date' => 'datetime',
     ];
-
 
     public function reservations(): EmbedsMany
     {

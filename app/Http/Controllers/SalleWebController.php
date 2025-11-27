@@ -10,7 +10,7 @@ class SalleWebController extends Controller
 {
     public function index()
     {
-        $salles = Salle::with('boutiqueModel')->orderBy('nom')->paginate(20);
+        $salles = Salle::with('boutique')->orderBy('nom')->paginate(20);
         return view('salles.index', compact('salles'));
     }
 
@@ -36,7 +36,7 @@ class SalleWebController extends Controller
 
     public function show($id)
     {
-        $salle = Salle::with('boutiqueModel')->findOrFail($id);
+        $salle = Salle::with('boutique')->findOrFail($id);
         return view('salles.show', compact('salle'));
     }
 

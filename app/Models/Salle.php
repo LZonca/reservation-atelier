@@ -20,15 +20,12 @@ class Salle extends EloquentModel
         'nom',
         'capacite',
         'categorie',
-        'boutique',
+        'boutique_id',
     ];
 
-    // Relation vers le modèle Boutique. On n'utilise pas le nom `boutique` pour la relation
-    // car le document Salle contient déjà un attribut `boutique` (l'ID). La relation
-    // s'appelle donc `boutiqueModel` pour éviter la collision.
-    public function boutiqueModel(): BelongsTo
+    public function boutique(): BelongsTo
     {
-        return $this->belongsTo(Boutique::class, 'boutique', '_id');
+        return $this->belongsTo(Boutique::class);
     }
 
     public function ateliers()

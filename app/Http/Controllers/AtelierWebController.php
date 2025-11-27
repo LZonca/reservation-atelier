@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Atelier;
-use App\Models\Reservation;
 use App\Models\Salle;
 
 class AtelierWebController extends Controller
@@ -48,20 +47,13 @@ class AtelierWebController extends Controller
     {
         $atelier = Atelier::with('salle')->findOrFail($id);
 
-        // récupérer les réservations standalone liées
-        $external = Reservation::where('atelier_id', $atelier->getKey())->orderBy('created_at', 'desc')->get();
+        // Réservations embarquées dans l'atelier
+        $reservations = $atelier->reservations ?? collect();
 
-        // récupère les réservations embarquées si présentes
-        $embedded = collect();
-        if ($atelier->reservations) {
-            if (is_array($atelier->reservations)) {
-                $embedded = collect($atelier->reservations);
-            } else {
-                $embedded = $atelier->reservations instanceof \Illuminate\Support\Collection ? $atelier->reservations : collect($atelier->reservations);
-            }
+        // Charger les clients pour les réservations
+        if ($reservations->isNotEmpty()) {
+            $reservations->load('client');
         }
-
-        $reservations = $external->merge($embedded);
 
         return view('ateliers.show', compact('atelier', 'reservations'));
     }
@@ -109,21 +101,13 @@ class AtelierWebController extends Controller
     {
         $atelier = Atelier::findOrFail($id);
 
-        // Réservations standalone liées à cet atelier (collection 'reservations')
-        $external = Reservation::where('atelier_id', $atelier->getKey())->orderBy('created_at', 'desc')->get();
+        // Réservations embarquées dans l'atelier
+        $reservations = $atelier->reservations ?? collect();
 
-        // Réservations embarquées dans l'atelier (si embedsMany) — normaliser en collection
-        $embedded = collect();
-        if ($atelier->reservations) {
-            if (is_array($atelier->reservations)) {
-                $embedded = collect($atelier->reservations);
-            } else {
-                $embedded = $atelier->reservations instanceof \Illuminate\Support\Collection ? $atelier->reservations : collect($atelier->reservations);
-            }
+        // Charger les clients pour les réservations
+        if ($reservations->isNotEmpty()) {
+            $reservations->load('client');
         }
-
-        // Fusionner les deux sources (external puis embedded)
-        $reservations = $external->merge($embedded);
 
         return view('ateliers.reservations', compact('atelier', 'reservations'));
     }
@@ -140,18 +124,29 @@ class AtelierWebController extends Controller
             'prix' => ['nullable','numeric'],
         ]);
 
-        $reservation = new Reservation();
-        // assigner les champs disponibles
-        $reservation->nbPersonne = $data['nbPersonne'];
-        if (isset($data['prix'])) $reservation->prix = (float)$data['prix'];
-        if (!empty($data['client_id'])) $reservation->client_id = $data['client_id'];
-        if (!empty($data['client_name'])) $reservation->client_name = $data['client_name'];
+        // Création d'une vraie Reservation (DocumentModel)
+        $reservation = new \App\Models\Reservation([
+            'nbPersonne' => $data['nbPersonne'],
+            'prix' => $data['prix'] ?? null,
+            'client_id' => $data['client_id'] ?? null,
+            'client_name' => $data['client_name'] ?? null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        // lier à l'atelier (champ atelier_id)
-        $reservation->atelier_id = $atelier->getKey();
+        // Facultatif : créer un paiement embedded automatiquement
+        $reservation->paiement()->associate(new \App\Models\Paiement([
+            'montant' => $reservation->prix,
+            'statut' => 'en_attente',
+            'methode_paiement' => 'carte',
+            'payement_recieved_at' => null,
+        ]));
 
-        $reservation->save();
+        // Sauvegarde embedded dans l'atelier
+        $atelier->reservations()->save($reservation);
 
-        return redirect(url('/ateliers/' . $atelier->getKey() . '/reservations'))->with('success', 'Réservation créée.');
+        return redirect(url('/ateliers/' . $atelier->getKey() . '/reservations'))
+            ->with('success', 'Réservation créée.');
     }
+
 }

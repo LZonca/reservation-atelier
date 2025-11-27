@@ -30,6 +30,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'boutique_id'
     ];
 
     /**
@@ -47,6 +48,9 @@ class User extends Authenticatable
         return $this->HasMany(Atelier::class);
     }
 
+    public function boutique(): HasOne{
+        return $this->hasOne(Boutique::class);
+    }
 
     /**
      * Get the attributes that should be cast.

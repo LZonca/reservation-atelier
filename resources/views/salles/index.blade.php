@@ -15,7 +15,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <div class="font-semibold">{{ $salle->nom ?? 'Salle' }}</div>
-                            <div class="text-sm text-gray-500">Capacité: {{ $salle->capacite ?? '—' }} @if(!empty($salle->boutiqueModel)) — <span class="text-gray-700">Boutique: {{ $salle->boutiqueModel->nom ?? $salle->boutique }}</span>@elseif(!empty($salle->boutique)) — <span class="text-gray-700">Boutique: {{ $salle->boutique }}</span>@endif</div>
+                            <div class="text-sm text-gray-500">Capacité: {{ $salle->capacite ?? '—' }} @if(!empty($salle->boutique)) — <span class="text-gray-700">Boutique: {{ $salle->boutique->nom ?? $salle->boutique }}</span>@elseif(!empty($salle->boutique)) — <span class="text-gray-700">Boutique: {{ $salle->boutique }}</span>@endif</div>
                         </div>
                         <div class="text-sm space-x-2">
                             <a href="{{ url('/salles/' . $salle->getKey()) }}" class="text-indigo-600">Voir</a>

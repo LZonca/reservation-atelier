@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use MongoDB\Laravel\Eloquent\DocumentModel;
 use MongoDB\Laravel\Eloquent\Model;
 use MongoDB\Laravel\Relations\EmbedsOne;
@@ -11,7 +12,7 @@ class Reservation extends Model
 {
     use HasFactory;
     use DocumentModel;
-    protected string $collection = 'reservations';
+    use SoftDeletes;
 
     protected $fillable = [
         'prix',
@@ -28,8 +29,8 @@ class Reservation extends Model
         return $this->belongsTo(Client::class);
     }
 
-    public function paiements(): EmbedsOne
+    public function paiement()
     {
-        return $this->embedsOne(Paiement::class);
+        return $this->embedsOne(Paiement::class, 'paiements');
     }
 }

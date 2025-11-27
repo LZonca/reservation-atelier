@@ -1,5 +1,9 @@
 <?php
 
+// ============================================
+// App/Http/Controllers/AtelierController.php
+// ============================================
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AtelierRequest;
@@ -7,10 +11,9 @@ use App\Http\Resources\AtelierResource;
 use App\Models\Atelier;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\Commentaire;
-use App\Models\Client;
 use App\Http\Resources\CommentaireResource;
-use Illuminate\Http\Request;
 use App\Http\Requests\CommentaireRequest;
+use MongoDB\BSON\ObjectId;
 
 class AtelierController extends Controller
 {
@@ -24,18 +27,21 @@ class AtelierController extends Controller
 
     public function store(AtelierRequest $request)
     {
-        return new AtelierResource(Atelier::create($request->validated()));
+        $atelier = Atelier::create($request->validated());
+        return new AtelierResource($atelier);
     }
 
     public function addComment(Atelier $atelier, CommentaireRequest $request)
     {
-        $commentaire = new Commentaire($request->validated());
-
-        $commentaire->atelier_id = $atelier->id;
-        $commentaire->client_id = $request->input('client_id');
-        $commentaire->date = now();
-
-        $commentaire->save();
+        // Créer le commentaire avec ObjectId
+        $commentaire = $atelier->commentaires()->create([
+            'commentaire' => $request->input('commentaire'),
+            'note' => $request->input('note'),
+            'atelier_id' => new ObjectId((string) $atelier->_id),
+            'client_id' => new ObjectId($request->input('client_id')),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         return new CommentaireResource($commentaire);
     }
@@ -60,33 +66,16 @@ class AtelierController extends Controller
         ]);
 
         $atelier = Atelier::findOrFail($id);
+        $atelier->update($request->validated());
 
-        // Normaliser les données pour la mise à jour
-        $data = $request->validated();
-
-        // si vip n'est pas envoyé (checkbox non coché), on force false
-        if (!array_key_exists('vip', $data)) {
-            // si le champ vient via request mais vide, on le laisse, sinon on force false
-            $data['vip'] = $request->has('vip') ? $request->input('vip') : false;
-        }
-
-        // s'assurer que prix est bien numérique si fourni
-        if (array_key_exists('prix', $data)) {
-            $data['prix'] = is_numeric($data['prix']) ? (float) $data['prix'] : $data['prix'];
-        }
-
-        $atelier->update($data);
-
-        \Log::info('Atelier updated', ['atelier' => $atelier]);
+        \Log::info('Atelier updated', ['atelier' => $atelier->toArray()]);
 
         return new AtelierResource($atelier);
     }
 
     public function destroy(Atelier $atelier)
     {
-
         $atelier->delete();
-
-        return response()->json();
+        return response()->json(['message' => 'Atelier supprimé avec succès.']);
     }
 }

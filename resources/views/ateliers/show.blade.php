@@ -62,12 +62,12 @@
                 @foreach($reservations as $res)
                     <div class="bg-white rounded shadow p-3 flex items-center justify-between">
                         <div>
-                            <div class="font-semibold">Réservation #{{ $res->_id ?? $res->id }}</div>
-                            <div class="text-sm text-gray-500">Client: {{ optional($res->client)->name ?? ($res->client_name ?? '—') }}</div>
+                            <div class="font-semibold">Réservation #{{ $res->_id }}</div>
+                            <div class="text-sm text-gray-500">Client: {{ $res->client ? $res->client->prenom . ' ' . $res->client->nom : ($res->client_name ?? '—') }}</div>
                             <div class="text-sm text-gray-500">Nb personnes: {{ $res->nbPersonne ?? ($res->nb_personne ?? '—') }}</div>
                         </div>
                         <div class="space-x-2 text-sm">
-                            <a href="{{ url('/reservations/' . ($res->_id ?? $res->id)) }}" class="text-indigo-600">Voir</a>
+                            {{-- <a href="{{ url('/reservations/' . $res->_id) }}" class="text-indigo-600">Voir</a> --}}
                         </div>
                     </div>
                 @endforeach

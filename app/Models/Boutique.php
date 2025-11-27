@@ -8,7 +8,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model as EloquentModel;
 use MongoDB\Laravel\Eloquent\DocumentModel;
+use MongoDB\Laravel\Relations\EmbedsMany;
 use MongoDB\Laravel\Relations\EmbedsOne;
+use MongoDB\Laravel\Relations\HasMany;
 
 class Boutique extends EloquentModel
 {
@@ -28,6 +30,16 @@ class Boutique extends EloquentModel
     public function adresse(): EmbedsOne
     {
         return $this->embedsOne(Adresse::class);
+    }
+
+    public function salles()
+    {
+        return $this->hasMany(Salle::class);
+    }
+
+    public function employes(): HasMany
+    {
+        return $this->hasMany(User::class);
     }
 
 

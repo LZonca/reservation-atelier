@@ -61,7 +61,7 @@
                         </div>
                         <div class="text-indigo-600 text-3xl">👥</div>
                     </div>
-                    <a href="{{ route('api.clients.index') }}" class="mt-4 inline-block text-sm text-indigo-600">Gérer les clients</a>
+                    <a href="{{ route('clients.index') }}" class="mt-4 inline-block text-sm text-indigo-600">Gérer les clients</a>
                 </div>
             </div>
 

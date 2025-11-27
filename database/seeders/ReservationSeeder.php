@@ -69,7 +69,7 @@ class ReservationSeeder extends Seeder
 
                     $montantRestant -= $montant;
 
-                    $reservation->paiements()->create([
+                    $reservation->paiement()->create([
                         'numCarte' => $this->generateCardNumber(),
                         'montant' => $montant,
                         'payement_recieved_at' => now()->subDays(rand(0, 60)),

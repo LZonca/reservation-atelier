@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\BoutiqueWebController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReservationWebController;
+use App\Http\Controllers\SalleWebController;
+use App\Livewire\ClientsDisplay;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AtelierWebController;
@@ -30,26 +34,29 @@ Route::middleware('auth')->group(function () {
     Route::delete('/ateliers/{atelier}', [AtelierWebController::class, 'destroy'])->name('ateliers.destroy');
 
     // Routes CRUD web pour les salles
-    Route::get('/salles', [\App\Http\Controllers\SalleWebController::class, 'index'])->name('salles.index');
-    Route::get('/salles/create', [\App\Http\Controllers\SalleWebController::class, 'create'])->name('salles.create');
-    Route::post('/salles', [\App\Http\Controllers\SalleWebController::class, 'store'])->name('salles.store');
-    Route::get('/salles/{salle}', [\App\Http\Controllers\SalleWebController::class, 'show'])->name('salles.show');
-    Route::get('/salles/{salle}/edit', [\App\Http\Controllers\SalleWebController::class, 'edit'])->name('salles.edit');
-    Route::put('/salles/{salle}', [\App\Http\Controllers\SalleWebController::class, 'update'])->name('salles.update');
-    Route::delete('/salles/{salle}', [\App\Http\Controllers\SalleWebController::class, 'destroy'])->name('salles.destroy');
+    Route::get('/salles', [SalleWebController::class, 'index'])->name('salles.index');
+    Route::get('/salles/create', [SalleWebController::class, 'create'])->name('salles.create');
+    Route::post('/salles', [SalleWebController::class, 'store'])->name('salles.store');
+    Route::get('/salles/{salle}', [SalleWebController::class, 'show'])->name('salles.show');
+    Route::get('/salles/{salle}/edit', [SalleWebController::class, 'edit'])->name('salles.edit');
+    Route::put('/salles/{salle}', [SalleWebController::class, 'update'])->name('salles.update');
+    Route::delete('/salles/{salle}', [SalleWebController::class, 'destroy'])->name('salles.destroy');
 
     // Routes CRUD web pour les boutiques
-    Route::get('/boutiques', [\App\Http\Controllers\BoutiqueWebController::class, 'index'])->name('boutiques.index');
-    Route::get('/boutiques/create', [\App\Http\Controllers\BoutiqueWebController::class, 'create'])->name('boutiques.create');
-    Route::post('/boutiques', [\App\Http\Controllers\BoutiqueWebController::class, 'store'])->name('boutiques.store');
-    Route::get('/boutiques/{boutique}', [\App\Http\Controllers\BoutiqueWebController::class, 'show'])->name('boutiques.show');
-    Route::get('/boutiques/{boutique}/edit', [\App\Http\Controllers\BoutiqueWebController::class, 'edit'])->name('boutiques.edit');
-    Route::put('/boutiques/{boutique}', [\App\Http\Controllers\BoutiqueWebController::class, 'update'])->name('boutiques.update');
-    Route::delete('/boutiques/{boutique}', [\App\Http\Controllers\BoutiqueWebController::class, 'destroy'])->name('boutiques.destroy');
+    Route::get('/boutiques', [BoutiqueWebController::class, 'index'])->name('boutiques.index');
+    Route::get('/boutiques/create', [BoutiqueWebController::class, 'create'])->name('boutiques.create');
+    Route::post('/boutiques', [BoutiqueWebController::class, 'store'])->name('boutiques.store');
+    Route::get('/boutiques/{boutique}', [BoutiqueWebController::class, 'show'])->name('boutiques.show');
+    Route::get('/boutiques/{boutique}/edit', [BoutiqueWebController::class, 'edit'])->name('boutiques.edit');
+    Route::put('/boutiques/{boutique}', [BoutiqueWebController::class, 'update'])->name('boutiques.update');
+    Route::delete('/boutiques/{boutique}', [BoutiqueWebController::class, 'destroy'])->name('boutiques.destroy');
 
     // Routes web pour les réservations (liste et détail)
-    Route::get('/reservations', [\App\Http\Controllers\ReservationWebController::class, 'index'])->name('reservations.index');
-    Route::get('/reservations/{reservation}', [\App\Http\Controllers\ReservationWebController::class, 'show'])->name('reservations.show');
+    Route::get('/reservations', [ReservationWebController::class, 'index'])->name('reservations.index');
+    Route::get('/reservations/{reservation}', [ReservationWebController::class, 'show'])->name('reservations.show');
+
+    Route::get('/clients', ClientsDisplay::class)->name('clients.index');
+
 });
 
 require __DIR__.'/auth.php';

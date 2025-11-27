@@ -1,14 +1,17 @@
 <?php
 
+// ============================================
+// App/Http/Controllers/ClientController.php
+// ============================================
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ClientRequest;
 use App\Http\Resources\ClientResource;
 use App\Models\Client;
 use App\Models\Atelier;
-use App\Models\Reservation;
-use App\Models\Paiement;
 use Illuminate\Http\Request;
+use MongoDB\BSON\ObjectId;
 
 class ClientController extends Controller
 {
@@ -19,9 +22,11 @@ class ClientController extends Controller
 
     public function store(ClientRequest $request)
     {
-        $client = Client::create($request->validated());
-        $client->credit_fidelite = 0;
-        $client->save();
+        $data = $request->validated();
+        $data['credit_fidelite'] = 0;
+
+        $client = Client::create($data);
+
         return new ClientResource($client);
     }
 
@@ -33,20 +38,17 @@ class ClientController extends Controller
     public function update(ClientRequest $request, Client $client)
     {
         $client->update($request->validated());
-
         return new ClientResource($client);
     }
 
     public function destroy(Client $client)
     {
         $client->delete();
-
-        return response()->json();
+        return response()->json(['message' => 'Client supprimé avec succès.']);
     }
 
     public function addToPanier(Client $client, Request $request)
     {
-        // Valider la requête
         $data = $request->validate([
             'atelier_id' => ['required', 'string'],
             'quantity' => ['nullable', 'integer', 'min:1'],
@@ -56,19 +58,22 @@ class ClientController extends Controller
         $quantity = $data['quantity'] ?? 1;
 
         $atelier = Atelier::find($atelierId);
-        if (! $atelier) {
+        if (!$atelier) {
             return response()->json(['message' => 'Atelier introuvable.'], 404);
         }
 
         $panier = $client->panier ?? ['ateliers' => []];
 
-        if (! isset($panier['ateliers'])) {
+        if (!isset($panier['ateliers'])) {
             $panier['ateliers'] = [];
         }
 
+        // Vérifier si l'atelier existe déjà dans le panier
         $found = false;
         foreach ($panier['ateliers'] as &$item) {
-            if (data_get($item, 'id') == $atelierId) {
+            // Comparer les IDs (string ou ObjectId)
+            $itemId = is_object($item['id']) ? (string) $item['id'] : $item['id'];
+            if ($itemId == $atelierId) {
                 $item['quantity'] = max(1, ($item['quantity'] ?? 0) + $quantity);
                 $found = true;
                 break;
@@ -76,12 +81,12 @@ class ClientController extends Controller
         }
         unset($item);
 
-        if (! $found) {
+        if (!$found) {
             $panier['ateliers'][] = [
                 'id' => $atelierId,
                 'quantity' => $quantity,
-                'nom' => $atelier->nom ?? null,
-                'prix' => $atelier->prix ?? null,
+                'nom' => $atelier->nom,
+                'prix' => $atelier->prix,
             ];
         }
 
@@ -101,16 +106,16 @@ class ClientController extends Controller
         ]);
 
         $atelierId = $data['atelier_id'];
-
         $panier = $client->panier ?? ['ateliers' => []];
 
         if (!isset($panier['ateliers'])) {
             $panier['ateliers'] = [];
         }
 
-        $panier['ateliers'] = array_filter($panier['ateliers'], function ($item) use ($atelierId) {
-            return data_get($item, 'id') != $atelierId;
-        });
+        $panier['ateliers'] = array_values(array_filter($panier['ateliers'], function ($item) use ($atelierId) {
+            $itemId = is_object($item['id']) ? (string) $item['id'] : $item['id'];
+            return $itemId != $atelierId;
+        }));
 
         $client->panier = $panier;
         $client->save();
@@ -137,7 +142,6 @@ class ClientController extends Controller
         $data = $request->validate([
             'numCarte' => ['required', 'string'],
             'methode_paiement' => ['nullable', 'string', 'in:carte,virement,paypal,credit_fidelite'],
-            
         ]);
 
         $panier = $client->panier;
@@ -146,9 +150,6 @@ class ClientController extends Controller
             return response()->json(['message' => 'Le panier est vide.'], 400);
         }
 
-
-
-    
         // Vérifier la capacité pour tous les ateliers
         foreach ($panier['ateliers'] as $item) {
             $atelier = Atelier::find($item['id']);
@@ -166,49 +167,65 @@ class ClientController extends Controller
 
         // Créer les réservations
         $reservations = [];
+
         foreach ($panier['ateliers'] as $item) {
             $atelier = Atelier::find($item['id']);
             $prix = ($atelier->prix ?? 0) * $item['quantity'];
-            if($atelier->vip && $request['methode_paiement']=='credit_fidelite'){
+            $methodePaiement = $data['methode_paiement'] ?? 'carte';
+
+            // Gestion des ateliers VIP
+            if ($atelier->vip && $methodePaiement == 'credit_fidelite') {
+                if ($client->credit_fidelite < 10) {
+                    return response()->json([
+                        'message' => 'Crédits de fidélité insuffisants. Requis: 10, Disponible: ' . $client->credit_fidelite,
+                    ], 422);
+                }
                 $prix = 0;
-                $client->credit_fidelite -=10;
+                $client->credit_fidelite -= 10;
+            } elseif ($atelier->vip && $methodePaiement != 'credit_fidelite') {
+                return response()->json([
+                    'message' => 'Les ateliers VIP ne peuvent être payés qu\'avec des crédits de fidélité. Atelier: ' . $atelier->nom,
+                ], 422);
+            } elseif (!$atelier->vip && $methodePaiement == 'credit_fidelite') {
+                return response()->json([
+                    'message' => 'Les crédits de fidélité ne sont utilisables que pour les ateliers VIP. Votre solde: ' . $client->credit_fidelite,
+                ], 422);
             }
-            $reservation = new Reservation([
+
+            // Créer la réservation avec ObjectId
+            $reservation = $atelier->reservations()->create([
                 'nbPersonne' => $item['quantity'],
                 'prix' => $prix,
+                'client_id' => new ObjectId((string) $client->_id),
+                'atelier_id' => new ObjectId((string) $atelier->_id),
             ]);
 
-            $reservation->client()->associate($client);
-            $reservation->atelier()->associate($atelier);
-
-            $paiement = new Paiement([
+            // Créer le paiement
+            $reservation->paiement()->create([
                 'numCarte' => $data['numCarte'],
                 'montant' => $prix,
-                'methode_paiement' => $data['methode_paiement'] ?? "carte",
-                'statut' => 'paye',
+                'methode_paiement' => $methodePaiement,
+                'statut' => 'validé',
                 'payement_recieved_at' => now(),
+                'reservation_id' => new ObjectId((string) $reservation->_id),
             ]);
-            
 
-            $reservation->paiements()->save($paiement);
-            $reservation->save();
-            if( $request['methode_paiement']!='credit_fidelite'){
-                $client->credit_fidelite += $item['quantity'] ;
+            // Ajouter des crédits de fidélité (sauf si payé avec crédits)
+            if ($methodePaiement != 'credit_fidelite') {
+                $client->credit_fidelite += $item['quantity'];
             }
-           
+
             $reservations[] = $reservation;
         }
 
-       
         // Vider le panier
         $client->panier = ['ateliers' => []];
-   
-
         $client->save();
 
         return response()->json([
             'message' => 'Panier traité avec succès. Réservations créées.',
             'reservations' => $reservations,
+            'credit_fidelite' => $client->credit_fidelite,
         ], 201);
     }
 }
