@@ -12,9 +12,6 @@ Route::get('/hello', function () {
     return 'Hello, World!';
 });
 
-
-// TODO: Sécuriser les routes avec un middleware d'authentification
-
 Route::get('/employes', [UserController::class, 'index'])->name('api.employes.index');
 
 Route::get('/clients', [ClientController::class, 'index'])->name('api.clients.index');
@@ -35,8 +32,6 @@ Route::get('/boutiques', [BoutiqueController::class, 'index'])->name('api.boutiq
 
 Route::post('/atelier/{atelierId}/reservations', [ReservationController::class, 'store'])->name('api.reservations.store');
 Route::get('/atelier/{atelierId}/reservations', [ReservationController::class, 'index'])->name('api.reservations.index');
-
-
 
 Route::post('/atelier/{atelier}/commentaires', [AtelierController::class, 'addComment'])->name('api.ateliers.addComment');
 Route::get('/atelier/{atelier}/commentaires', [AtelierController::class, 'getComments'])->name('api.ateliers.getComments');

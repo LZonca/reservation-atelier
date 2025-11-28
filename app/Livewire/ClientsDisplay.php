@@ -418,7 +418,6 @@ class ClientsDisplay extends Component
                     'nbPersonne' => $item['quantity'],
                     'prix' => $prix,
                     'client_id' => new ObjectId((string) $this->selectedClient->_id),
-                    'atelier_id' => new ObjectId((string) $atelier->_id),
                     'paiements' => $paiements,
                     'created_at' => now(),
                     'updated_at' => now(),
