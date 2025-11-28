@@ -42,33 +42,67 @@ class ReservationEditor extends Component
         'montant' => 'required|numeric|min:0',
     ];
 
+    public function mount()
+    {
+        Log::info('[ReservationEditor] Component mounted');
+    }
+
     public function openReservationEditor($atelierId, $reservationId)
     {
+        Log::info('[ReservationEditor] Event received via Livewire listener', [
+            'atelierId' => $atelierId,
+            'reservationId' => $reservationId,
+            'type_atelierId' => gettype($atelierId),
+            'type_reservationId' => gettype($reservationId)
+        ]);
+
         try {
             $this->atelierId = $atelierId;
             $this->reservationId = $reservationId;
 
+            Log::info('[ReservationEditor] Searching for atelier', ['atelierId' => $atelierId]);
+
             $atelier = Atelier::with(['reservations.client', 'reservations.paiement'])->find($atelierId);
 
             if (!$atelier) {
+                Log::error('[ReservationEditor] Atelier not found', ['atelierId' => $atelierId]);
                 $this->addError('global', 'Atelier introuvable.');
                 return;
             }
 
-            // Trouver la réservation via la relation
+            Log::info('[ReservationEditor] Atelier found', [
+                'atelier_id' => $atelier->_id,
+                'reservations_count' => $atelier->reservations->count()
+            ]);
+
             $reservation = $this->findEmbeddedReservation($atelier, (string)$reservationId);
 
             if (!$reservation) {
+                Log::error('[ReservationEditor] Reservation not found', [
+                    'reservationId' => $reservationId,
+                    'available_ids' => $atelier->reservations->pluck('_id')->toArray()
+                ]);
                 $this->addError('global', 'Réservation introuvable.');
                 return;
             }
+
+            Log::info('[ReservationEditor] Reservation found', [
+                'reservation_id' => $reservation->_id,
+                'nbPersonne' => $reservation->nbPersonne,
+                'prix' => $reservation->prix
+            ]);
 
             // Charger les données de la réservation
             $this->nbPersonne = $reservation->nbPersonne ?? 1;
             $this->prix = $reservation->prix ?? 0;
 
-            // Charger les données du paiement via la relation
+            // Accéder via la relation
             $paiement = $reservation->paiement;
+
+            Log::info('[ReservationEditor] Paiement loaded', [
+                'paiement_exists' => !is_null($paiement),
+                'paiement_data' => $paiement ? $paiement->toArray() : null
+            ]);
 
             if ($paiement) {
                 $this->methode_paiement = $paiement->methode_paiement ?? '';
@@ -82,23 +116,37 @@ class ReservationEditor extends Component
                 $this->montant = $this->prix;
             }
 
-            // Charger les infos du client via la relation
+            // Charger les infos du client
             $client = $reservation->client;
 
+            Log::info('[ReservationEditor] Client loaded', [
+                'client_exists' => !is_null($client),
+                'client_data' => $client ? [
+                    'nom' => $client->nom ?? '',
+                    'prenom' => $client->prenom ?? '',
+                    'email' => $client->email ?? ''
+                ] : null
+            ]);
+
             if ($client) {
-                $this->clientNom = $client->nom;
-                $this->clientPrenom = $client->prenom;
-                $this->clientEmail = $client->email;
+                $this->clientNom = $client->nom ?? '';
+                $this->clientPrenom = $client->prenom ?? '';
+                $this->clientEmail = $client->email ?? '';
             }
 
+            Log::info('[ReservationEditor] Opening modal', ['open' => true]);
             $this->open = true;
 
+            Log::info('[ReservationEditor] Modal should be open now');
+
         } catch (\Exception $e) {
-            Log::error('[ReservationEditor] Erreur ouverture modal: ' . $e->getMessage(), [
-                'exception' => $e,
+            Log::error('[ReservationEditor] Exception in openReservationEditor', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
-            $this->addError('global', 'Erreur lors du chargement de la réservation.');
+            $this->addError('global', 'Erreur lors du chargement de la réservation: ' . $e->getMessage());
         }
     }
 
@@ -107,14 +155,13 @@ class ReservationEditor extends Component
         $this->validate();
 
         try {
-            $atelier = Atelier::with('reservations')->find($this->atelierId);
+            $atelier = Atelier::with(['reservations.paiement'])->find($this->atelierId);
 
             if (!$atelier) {
                 $this->addError('global', 'Atelier introuvable.');
                 return;
             }
 
-            // Récupérer la réservation via la relation (recherche robuste)
             $reservation = $this->findEmbeddedReservation($atelier, (string)$this->reservationId);
 
             if (!$reservation) {
@@ -127,126 +174,102 @@ class ReservationEditor extends Component
             $reservation->prix = (float)$this->prix;
             $reservation->updated_at = now();
 
-            // Mettre à jour ou créer le paiement embarqué
-            $paiementData = [
-                'numCarte' => $this->numCarte,
-                'montant' => (float)$this->montant,
-                'methode_paiement' => $this->methode_paiement,
-                'statut' => $this->statut,
-                'updated_at' => now(),
-            ];
-
-            // Si le paiement existe, le mettre à jour, sinon le créer via la relation embedsOne
+            // Mettre à jour le paiement via la relation
             $paiement = $reservation->paiement;
+
             if ($paiement) {
-                // $paiement est un modèle imbriqué
-                foreach ($paiementData as $key => $value) {
-                    $paiement->$key = $value;
-                }
-                $reservation->paiement()->save($paiement);
+                $paiement->numCarte = $this->numCarte;
+                $paiement->montant = (float)$this->montant;
+                $paiement->methode_paiement = $this->methode_paiement;
+                $paiement->statut = $this->statut;
+                $paiement->updated_at = now();
+                $paiement->save();
             } else {
-                // Préparer les champs additionnels
-                $paiementData['created_at'] = now();
-                $paiementData['payement_recieved_at'] = now();
-                $reservation->paiement()->create($paiementData);
+                $reservation->paiement()->create([
+                    'numCarte' => $this->numCarte,
+                    'montant' => (float)$this->montant,
+                    'methode_paiement' => $this->methode_paiement,
+                    'statut' => $this->statut,
+                    'payement_recieved_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
 
-            // Sauvegarder la réservation imbriquée (va persister dans le parent)
             $reservation->save();
 
-             // émettre un event Livewire/Broadcast local
-             if (method_exists($this, 'dispatch')) {
-                 $this->dispatch('reservationUpdated');
-             } else {
-                 $this->emit('reservationUpdated');
-             }
-             session()->flash('success', 'Réservation mise à jour avec succès.');
+            session()->flash('success', 'Réservation mise à jour avec succès.');
 
-             $this->open = false;
-             $this->reset();
+            $this->open = false;
+            $this->reset();
 
-         } catch (\Exception $e) {
-             Log::error('[ReservationEditor] Erreur sauvegarde: ' . $e->getMessage(), [
-                 'exception' => $e,
-                 'trace' => $e->getTraceAsString(),
-                 'atelierId' => $this->atelierId,
-                 'reservationId' => $this->reservationId
-             ]);
-             $this->addError('global', 'Erreur lors de la sauvegarde: ' . $e->getMessage());
-         }
-     }
+            return redirect()->back();
 
-     public function cancelReservation()
-     {
-         try {
-             $atelier = Atelier::with('reservations.client')->find($this->atelierId);
+        } catch (\Exception $e) {
+            Log::error('[ReservationEditor] Erreur sauvegarde: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            $this->addError('global', 'Erreur lors de la sauvegarde: ' . $e->getMessage());
+        }
+    }
 
-             if (!$atelier) {
-                 $this->addError('global', 'Atelier introuvable.');
-                 return;
-             }
+    public function cancelReservation()
+    {
+        try {
+            $atelier = Atelier::with(['reservations.client', 'reservations.paiement'])->find($this->atelierId);
 
-             // Récupérer la réservation pour le remboursement (recherche robuste)
-             $reservation = $this->findEmbeddedReservation($atelier, $this->reservationId);
+            if (!$atelier) {
+                $this->addError('global', 'Atelier introuvable.');
+                return;
+            }
 
-             if ($reservation) {
-                 $paiement = $reservation->paiement;
+            $reservation = $this->findEmbeddedReservation($atelier, $this->reservationId);
 
-                 // Gestion du remboursement si le paiement était validé/completed
-                 if ($paiement && in_array($paiement->statut ?? '', ['validé', 'completed'])) {
-                     $client = $reservation->client;
-                     if ($client && ($reservation->nbPersonne ?? 0) > 0) {
-                         // Rembourser les crédits fidélité
-                         $client->credit_fidelite = max(0, ($client->credit_fidelite ?? 0) - ($reservation->nbPersonne ?? 0));
-                         $client->save();
-                     }
-                 }
+            if ($reservation) {
+                $paiement = $reservation->paiement;
 
-                // Marquer la réservation comme soft-deleted et persister via save()
+                if ($paiement && in_array($paiement->statut ?? '', ['validé', 'completed'])) {
+                    $client = $reservation->client;
+                    if ($client && ($reservation->nbPersonne ?? 0) > 0) {
+                        $client->credit_fidelite = max(0, ($client->credit_fidelite ?? 0) - ($reservation->nbPersonne ?? 0));
+                        $client->save();
+                    }
+                }
+
                 $reservation->deleted_at = now();
 
-                // Marquer le paiement comme remboursé si présent
                 if ($paiement) {
                     $paiement->statut = 'remboursé';
                     $paiement->rembourse_at = now();
-                    $reservation->paiement()->save($paiement);
+                    $paiement->save();
                 }
 
                 $reservation->save();
-             }
+            }
 
-             if (method_exists($this, 'dispatch')) {
-                 $this->dispatch('reservationUpdated');
-             } else {
-                 $this->emit('reservationUpdated');
-             }
-             session()->flash('success', 'Réservation annulée avec succès.');
+            session()->flash('success', 'Réservation annulée avec succès.');
 
-             $this->open = false;
-             $this->reset();
+            $this->open = false;
+            $this->reset();
 
-         } catch (\Exception $e) {
-             Log::error('[ReservationEditor] Erreur annulation: ' . $e->getMessage(), [
-                 'exception' => $e,
-                 'trace' => $e->getTraceAsString()
-             ]);
-             $this->addError('global', 'Erreur lors de l\'annulation: ' . $e->getMessage());
-         }
-     }
+            return redirect()->back();
 
-    /**
-     * Extrait l'identifiant d'une réservation quelle que soit sa forme
-     * - array with '_id' => ObjectId or ['\$oid' => '...']
-     * - array with 'id'
-     * - stdClass/object with _id or id
-     */
+        } catch (\Exception $e) {
+            Log::error('[ReservationEditor] Erreur annulation: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            $this->addError('global', 'Erreur lors de l\'annulation: ' . $e->getMessage());
+        }
+    }
+
     private function extractReservationId($res)
     {
-        // Si c'est un objet (stdClass ou Model), tenter les propriétés
         if (is_object($res)) {
             if (property_exists($res, '_id')) {
                 $val = $res->_id;
-                if (is_object($val)) return (string)$val; // ObjectId
+                if (is_object($val)) return (string)$val;
                 if (is_array($val) && isset($val['$oid'])) return (string)$val['$oid'];
                 return (string)$val;
             }
@@ -256,7 +279,6 @@ class ReservationEditor extends Component
             return '';
         }
 
-        // Si c'est un tableau
         if (is_array($res)) {
             if (array_key_exists('_id', $res)) {
                 $val = $res['_id'];
@@ -270,17 +292,25 @@ class ReservationEditor extends Component
             return '';
         }
 
-        // fallback
         return (string)$res;
     }
 
-    /**
-     * Trouve une réservation embedée dans un atelier en comparant les id normalisés
-     */
     private function findEmbeddedReservation(Atelier $atelier, string $id)
     {
-        foreach ($atelier->reservations as $reservation) {
+        Log::info('[ReservationEditor] Searching for reservation', [
+            'looking_for' => $id,
+            'total_reservations' => count($atelier->reservations)
+        ]);
+
+        foreach ($atelier->reservations as $index => $reservation) {
             $resId = $this->extractReservationId($reservation);
+            Log::info('[ReservationEditor] Comparing reservation', [
+                'index' => $index,
+                'resId' => $resId,
+                'looking_for' => $id,
+                'match' => $resId === (string)$id
+            ]);
+
             if ($resId === (string)$id) {
                 return $reservation;
             }
@@ -291,6 +321,7 @@ class ReservationEditor extends Component
 
     public function render()
     {
+        Log::info('[ReservationEditor] Rendering component', ['open' => $this->open]);
         return view('livewire.reservation-editor');
     }
 }
