@@ -45,15 +45,6 @@ class AtelierSeeder extends Seeder
             $ateliers[] = $atelier;
         }
 
-        // 5 ateliers gratuits
-        foreach (range(1, 5) as $index) {
-            $atelier = Atelier::factory()->gratuit()->create([
-                'employe_id' => new ObjectId((string) $users->random()->_id),
-                'salle_id' => new ObjectId((string) $salles->random()->_id),
-            ]);
-            $ateliers[] = $atelier;
-        }
-
         $totalAteliers = count($ateliers);
         $this->command->info("   ✓ {$totalAteliers} ateliers créés avec succès");
 

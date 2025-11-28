@@ -207,7 +207,6 @@ class ClientController extends Controller
                 'methode_paiement' => $methodePaiement,
                 'statut' => 'validé',
                 'payement_recieved_at' => now(),
-                'reservation_id' => new ObjectId((string) $reservation->_id),
             ]);
 
             // Ajouter des crédits de fidélité (sauf si payé avec crédits)

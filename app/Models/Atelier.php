@@ -68,15 +68,40 @@ class Atelier extends EloquentModel
     }
 
     /**
-     * Calcule la capacité restante en prenant la capacité de la salle.
+     * Récupère uniquement les réservations actives (non soft-deleted)
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function activeReservations()
+    {
+        return $this->reservations->filter(function($reservation) {
+            return empty($reservation->deleted_at);
+        });
+    }
+
+    /**
+     * Calcule la capacité restante en prenant en compte uniquement les réservations actives
      */
     public function remainingCapacity(): int
     {
-        $reserved = \App\Models\Reservation::where('atelier_id', $this->id)->sum('nbPersonne');
+        // Compter uniquement les réservations non supprimées
+        $reserved = $this->activeReservations()->sum('nbPersonne');
 
         $salleCapacite = $this->salle ? ($this->salle->capacite ?? 0) : ($this->capacite ?? 0);
 
         return max(0, $salleCapacite - $reserved);
+    }
+
+    /**
+     * Récupère les réservations supprimées (soft-deleted)
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function deletedReservations()
+    {
+        return $this->reservations->filter(function($reservation) {
+            return !empty($reservation->deleted_at);
+        });
     }
 
     protected function casts(): array

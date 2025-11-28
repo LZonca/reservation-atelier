@@ -27,26 +27,6 @@ class ReservationFactory extends Factory
         ];
     }
 
-    /**
-     * Configure le factory pour assigner un atelier
-     */
-    public function forAtelier(?Atelier $atelier = null): static
-    {
-        return $this->state(function (array $attributes) use ($atelier) {
-            $workshop = $atelier ?? Atelier::inRandomOrder()->first();
-
-            if (!$workshop) {
-                return [];
-            }
-
-            $nbPersonnes = $attributes['nbPersonne'] ?? $this->faker->numberBetween(1, 10);
-
-            return [
-                'atelier_id' => new ObjectId((string)$workshop->_id),
-                'prix' => $workshop->prix * $nbPersonnes,
-            ];
-        });
-    }
 
     /**
      * Configure le factory pour assigner un client

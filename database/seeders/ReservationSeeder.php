@@ -8,6 +8,7 @@ namespace Database\Seeders;
 
 use App\Models\Atelier;
 use App\Models\Client;
+use App\Models\Paiement;
 use Illuminate\Database\Seeder;
 use MongoDB\BSON\ObjectId;
 
@@ -51,7 +52,6 @@ class ReservationSeeder extends Seeder
                     'prix' => $prixTotal,
                     'nbPersonne' => $nbPersonnes,
                     'client_id' => new ObjectId((string) $client->_id),
-                    'atelier_id' => new ObjectId((string) $atelier->_id),
                 ]);
 
                 $totalReservations++;
@@ -88,9 +88,9 @@ class ReservationSeeder extends Seeder
         $this->command->info("   → Montant total des réservations : " . number_format($totalMontant, 2) . " €");
 
         // Statistiques par statut de paiement
-        $validesCount = \App\Models\Paiement::where('statut', 'validé')->count();
-        $attenteCount = \App\Models\Paiement::where('statut', 'en_attente')->count();
-        $refusesCount = \App\Models\Paiement::where('statut', 'refusé')->count();
+        $validesCount = Paiement::where('statut', 'validé')->count();
+        $attenteCount = Paiement::where('statut', 'en_attente')->count();
+        $refusesCount = Paiement::where('statut', 'refusé')->count();
 
         $this->command->info("   → Paiements validés : {$validesCount}");
         $this->command->info("   → Paiements en attente : {$attenteCount}");
