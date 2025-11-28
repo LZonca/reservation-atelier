@@ -9,9 +9,10 @@ class SalleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'capacite' => ['required', 'integer'],
-            'categorie' => ['required'],
-            'boutique_id' => ['required', 'exists:boutique,id'],
+            'nom' => ['required', 'string', 'max:255'],
+            'capacite' => ['nullable', 'integer', 'min:0'],
+            'categorie' => ['nullable', 'string', 'max:255'],
+            'boutique_id' => ['nullable', 'string'],
         ];
     }
 

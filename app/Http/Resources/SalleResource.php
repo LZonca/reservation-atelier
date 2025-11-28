@@ -12,9 +12,13 @@ class SalleResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id' => (string) $this->getKey(),
+            'nom' => $this->nom,
             'capacite' => $this->capacite,
             'categorie' => $this->categorie,
-            'boutique_id' => new BoutiqueRessource($this->employe),
+            'boutique' => $this->whenLoaded('boutique', function () {
+                return new BoutiqueRessource($this->boutique);
+            }, (string) ($this->boutique_id ?? '')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

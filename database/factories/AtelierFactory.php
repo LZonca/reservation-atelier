@@ -25,7 +25,7 @@ class AtelierFactory extends Factory
             'description' => $this->faker->sentence(10),
             'duree' => $this->faker->numberBetween(1, 8),
             'prix' => $this->faker->randomFloat(2, 10, 100),
-            'category' => $this->faker->randomElement([
+            'categorie' => $this->faker->randomElement([
                 'Cuisine',
                 'Art',
                 'Sport',

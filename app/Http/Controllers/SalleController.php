@@ -6,6 +6,7 @@ use App\Http\Requests\SalleRequest;
 use App\Http\Resources\SalleResource;
 use App\Models\Salle;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use MongoDB\BSON\ObjectId;
 
 class SalleController extends Controller
 {
@@ -22,13 +23,23 @@ class SalleController extends Controller
     {
         $this->authorize('create', Salle::class);
 
-        return new SalleResource(Salle::create($request->validated()));
+        $data = $request->validated();
+
+        if (isset($data['boutique_id']) && $data['boutique_id'] !== '') {
+            try {
+                $data['boutique_id'] = new ObjectId($data['boutique_id']);
+            } catch (\Exception $e) {
+                unset($data['boutique_id']);
+            }
+        }
+
+        return new SalleResource(Salle::create($data));
     }
 
     public function show(Salle $salle)
     {
         $this->authorize('view', $salle);
-        $salle= Salle::with(['boutique'])->get();
+        $salle = $salle->load(['boutique']);
         return new SalleResource($salle);
     }
 
@@ -36,7 +47,17 @@ class SalleController extends Controller
     {
         $this->authorize('update', $salle);
 
-        $salle->update($request->validated());
+        $data = $request->validated();
+
+        if (isset($data['boutique_id']) && $data['boutique_id'] !== '') {
+            try {
+                $data['boutique_id'] = new ObjectId($data['boutique_id']);
+            } catch (\Exception $e) {
+                unset($data['boutique_id']);
+            }
+        }
+
+        $salle->update($data);
 
         return new SalleResource($salle);
     }

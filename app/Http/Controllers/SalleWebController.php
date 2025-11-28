@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Salle;
 use App\Models\Boutique;
+use MongoDB\BSON\ObjectId;
 
 class SalleWebController extends Controller
 {
@@ -26,8 +27,11 @@ class SalleWebController extends Controller
             'nom' => 'required|string|max:255',
             'capacite' => 'nullable|integer|min:0',
             'adresse' => 'nullable|string|max:500',
-            'boutique' => ['nullable', 'string'],
+            'categorie' => 'nullable|string|max:255',
+            'boutique_id' => 'nullable|string',
         ]);
+
+        $data = $this->convertBoutiqueId($data);
 
         $salle = Salle::create($data);
 
@@ -53,8 +57,11 @@ class SalleWebController extends Controller
             'nom' => 'required|string|max:255',
             'capacite' => 'nullable|integer|min:0',
             'adresse' => 'nullable|string|max:500',
-            'boutique' => ['nullable', 'string'],
+            'categorie' => 'nullable|string|max:255',
+            'boutique_id' => 'nullable|string',
         ]);
+
+        $data = $this->convertBoutiqueId($data);
 
         $salle = Salle::findOrFail($id);
         $salle->update($data);
@@ -68,5 +75,27 @@ class SalleWebController extends Controller
         $salle->delete();
 
         return redirect(url('/salles'))->with('success', 'Salle supprimée.');
+    }
+
+    /**
+     * Convertit boutique_id en ObjectId si possible, sinon le supprime (null).
+     * @param array $data
+     * @return array
+     */
+    protected function convertBoutiqueId(array $data): array
+    {
+        if (!isset($data['boutique_id']) || $data['boutique_id'] === '') {
+            unset($data['boutique_id']);
+            return $data;
+        }
+
+        try {
+            $data['boutique_id'] = new ObjectId($data['boutique_id']);
+        } catch (\Exception $e) {
+            // ID invalide : retirer la clé pour éviter une exception MongoDB
+            unset($data['boutique_id']);
+        }
+
+        return $data;
     }
 }
