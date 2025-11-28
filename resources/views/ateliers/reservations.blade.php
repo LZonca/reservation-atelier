@@ -100,7 +100,6 @@
                                         $payment = $reservation->paiement;
                                         $paymentId = $payment ? (data_get($payment, '_id') ?? data_get($payment, 'id')) : null;
                                     @endphp
-
                                     <div>
                                         <span class="text-gray-600">Prix payé:</span>
                                         <span class="font-medium ml-1">
@@ -135,19 +134,16 @@
                             @if(!$isDeleted)
                                 <div class="ml-4">
                                     <button
-                                        onclick="Livewire.dispatch('openReservationEditor', { atelierId: '{{ $atelier->_id }}', reservationId: '{{ $reservation->_id }}' })"
+                                        onclick="
+                console.log('Button clicked');
+                Livewire.dispatch('openReservationEditor', '{{ (string)$atelier->_id }}', '{{ (string)$reservation->_id }}');
+                console.log('Event dispatched');
+            "
                                         class="px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded hover:bg-blue-600 transition-colors">
                                         Éditer
                                     </button>
                                 </div>
-                            @else
-                                <div class="ml-4">
-                                    <div class="px-4 py-2 bg-gray-200 text-gray-500 text-sm font-semibold rounded cursor-not-allowed">
-                                        Annulée
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
+                            @endif                        </div>
                     </div>
                 @endforeach
             </div>
