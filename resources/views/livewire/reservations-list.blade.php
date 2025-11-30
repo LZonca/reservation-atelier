@@ -35,7 +35,9 @@
         </div>
 
         {{-- Composant modal Livewire --}}
-        @livewire('reservation-editor')
+        @if($editReservationId)
+            @livewire('reservation-editor', ['atelierId' => $atelier->_id, 'reservationId' => $editReservationId], key($editReservationId))
+        @endif
 
         @if(isset($reservations) && $reservations->count())
             {{-- Compteur de réservations --}}
@@ -100,6 +102,7 @@
                                         $payment = $reservation->paiement;
                                         $paymentId = $payment ? (data_get($payment, '_id') ?? data_get($payment, 'id')) : null;
                                     @endphp
+
                                     <div>
                                         <span class="text-gray-600">Prix payé:</span>
                                         <span class="font-medium ml-1">
@@ -134,19 +137,19 @@
                             @if(!$isDeleted)
                                 <div class="ml-4">
                                     <button
-                                        onclick="
-                console.log('Button clicked');
-                Livewire.dispatch('openReservationEditor', {
-                    atelierId: '{{ (string)$atelier->_id }}',
-                    reservationId: '{{ (string)$reservation->_id }}'
-                });
-                console.log('Event dispatched');
-            "
+                                        wire:click="openEditModal('{{ is_array($reservation->_id) && isset($reservation->_id['$oid']) ? $reservation->_id['$oid'] : (string) $reservation->_id }}')"
                                         class="px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded hover:bg-blue-600 transition-colors">
                                         Éditer
                                     </button>
                                 </div>
-                            @endif                        </div>
+                            @else
+                                <div class="ml-4">
+                                    <div class="px-4 py-2 bg-gray-200 text-gray-500 text-sm font-semibold rounded cursor-not-allowed">
+                                        Annulée
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 @endforeach
             </div>
