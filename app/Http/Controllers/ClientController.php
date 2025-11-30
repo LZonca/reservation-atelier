@@ -197,7 +197,6 @@ class ClientController extends Controller
                 'nbPersonne' => $item['quantity'],
                 'prix' => $prix,
                 'client_id' => new ObjectId((string) $client->_id),
-                'atelier_id' => new ObjectId((string) $atelier->_id),
             ]);
 
             // Créer le paiement
