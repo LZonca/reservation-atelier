@@ -20,8 +20,8 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-gray-700">Boutique (optionnel)</label>
-        <select name="boutique_id" class="mt-1 block w-full border rounded-md px-3 py-2 text-sm">
+        <label class="block text-sm font-medium text-gray-700">Boutique</label>
+        <select name="boutique_id" required class="mt-1 block w-full border rounded-md px-3 py-2 text-sm">
             <option value="">-- Aucune boutique --</option>
             @isset($boutiques)
                 @foreach($boutiques as $boutique)

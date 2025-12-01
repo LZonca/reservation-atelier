@@ -105,7 +105,7 @@
                 @endif
 
                 @if(!empty($atelier->salle))
-                    <div class="mt-2"><strong>Salle :</strong> {{ $atelier->salle->nom ?? ($atelier->salle_id ?? '—') }}</div>
+                    <div class="mt-2"><strong>Salle :</strong> {{ $atelier->salle->nom ?? ($atelier->salle_id ?? '—') }} - {{ $atelier->salle->boutique->nom }}</div>
                 @endif
             </div>
 
