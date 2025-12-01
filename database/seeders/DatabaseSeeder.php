@@ -10,13 +10,14 @@ class DatabaseSeeder extends Seeder
     {
 
         $this->call([
-
             ClientSeeder::class,
             BoutiqueSeeder::class,
             SalleSeeder::class,
             UserSeeder::class,
             AtelierSeeder::class,
             ReservationSeeder::class,
+            CommentaireSeeder::class,
+            PanierSeeder::class,
         ]);
     }
 }

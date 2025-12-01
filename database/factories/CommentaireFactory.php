@@ -17,7 +17,10 @@ class CommentaireFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'commentaire' => $this->faker->paragraph(rand(2, 5)),
+            'note' => $this->faker->numberBetween(1, 5),
+            'created_at' => $this->faker->dateTimeBetween('-3 months', 'now'),
+            'updated_at' => now(),
         ];
     }
 }

@@ -337,6 +337,7 @@ class ClientsDisplay extends Component
 
         // Convertir les IDs en ObjectId avant sauvegarde
         $panierToSave = $this->convertPanierIdsToObjectId($this->panier);
+        $panierToSave['expires_at'] = now()->addMinutes(20);
         $this->selectedClient->panier = $panierToSave;
         $this->selectedClient->save();
 

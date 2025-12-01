@@ -67,7 +67,7 @@ class ClientController extends Controller
         if (!isset($panier['ateliers'])) {
             $panier['ateliers'] = [];
         }
-
+        $panier['expires_at'] = now()->addMinutes(20);
         // Vérifier si l'atelier existe déjà dans le panier
         $found = false;
         foreach ($panier['ateliers'] as &$item) {
