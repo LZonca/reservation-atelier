@@ -21,9 +21,9 @@ class AtelierFactory extends Factory
     {
         return [
             'nom' => $this->faker->words(3, true),
-            'date' => Carbon::now()->addDays($this->faker->numberBetween(1, 60)),
+            'date' => $this->faker->dateTimeBetween('now', '+2 week'),
             'description' => $this->faker->sentence(10),
-            'duree' => $this->faker->numberBetween(1, 8),
+            'duree' => $this->faker->numberBetween(1, 4),
             'prix' => $this->faker->randomFloat(2, 10, 100),
             'categorie' => $this->faker->randomElement([
                 'Peinture',

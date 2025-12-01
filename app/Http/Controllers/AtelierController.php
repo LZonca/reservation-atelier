@@ -27,7 +27,23 @@ class AtelierController extends Controller
 
     public function store(AtelierRequest $request)
     {
-        $atelier = Atelier::create($request->validated());
+        $data = $request->validated();
+
+        // Vérifier la disponibilité de la salle si salle_id, date et durée sont fournis
+        if (!empty($data['salle_id']) && !empty($data['date']) && !empty($data['duree'])) {
+            $salle = \App\Models\Salle::find($data['salle_id']);
+
+            if ($salle && !$salle->isDisponible($data['date'], $data['duree'])) {
+                return response()->json([
+                    'message' => 'La salle n\'est pas disponible pour le créneau sélectionné.',
+                    'errors' => [
+                        'salle_id' => ['Cette salle n\'est pas disponible pour le créneau sélectionné.']
+                    ]
+                ], 422);
+            }
+        }
+
+        $atelier = Atelier::create($data);
         return new AtelierResource($atelier);
     }
 
@@ -66,7 +82,24 @@ class AtelierController extends Controller
         ]);
 
         $atelier = Atelier::findOrFail($id);
-        $atelier->update($request->validated());
+        $data = $request->validated();
+
+        // Vérifier la disponibilité de la salle si salle_id, date et durée sont fournis
+        if (!empty($data['salle_id']) && !empty($data['date']) && !empty($data['duree'])) {
+            $salle = \App\Models\Salle::find($data['salle_id']);
+
+            // Exclure l'atelier en cours de modification
+            if ($salle && !$salle->isDisponible($data['date'], $data['duree'], $id)) {
+                return response()->json([
+                    'message' => 'La salle n\'est pas disponible pour le créneau sélectionné.',
+                    'errors' => [
+                        'salle_id' => ['Cette salle n\'est pas disponible pour le créneau sélectionné.']
+                    ]
+                ], 422);
+            }
+        }
+
+        $atelier->update($data);
 
         \Log::info('Atelier updated', ['atelier' => $atelier->toArray()]);
 

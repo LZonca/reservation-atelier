@@ -18,7 +18,7 @@ class AtelierWebController extends Controller
     // Formulaire de création
     public function create()
     {
-        // Charger les salles groupées par boutique
+        // Charger toutes les salles (seront filtrées côté client par JavaScript)
         $sallesParBoutique = \App\Models\Salle::with('boutique')
             ->orderBy('nom')
             ->get()
@@ -39,12 +39,23 @@ class AtelierWebController extends Controller
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
             'date' => 'nullable|date',
-            'duree' => 'nullable|string|max:100',
+            'duree' => 'nullable|integer|min:1',
             'prix' => 'nullable|numeric',
             'salle_id' => 'nullable|string',
             'employe_id' => 'nullable|string',
             'vip' => 'sometimes|boolean',
         ]);
+
+        // Vérifier la disponibilité de la salle si salle_id, date et durée sont fournis
+        if (!empty($data['salle_id']) && !empty($data['date']) && !empty($data['duree'])) {
+            $salle = \App\Models\Salle::findOrFail($data['salle_id']);
+
+            if (!$salle->isDisponible($data['date'], $data['duree'])) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['salle_id' => 'Cette salle n\'est pas disponible pour le créneau sélectionné.']);
+            }
+        }
 
         $data['vip'] = !empty($data['vip']);
 
@@ -95,16 +106,28 @@ class AtelierWebController extends Controller
             'nom' => 'required|string|max:255',
             'description' => 'nullable|string',
             'date' => 'nullable|date',
-            'duree' => 'nullable|string|max:100',
+            'duree' => 'nullable|integer|min:1',
             'prix' => 'nullable|numeric',
             'salle_id' => 'nullable|string',
             'employe_id' => 'nullable|string',
             'vip' => 'sometimes|boolean',
         ]);
 
-        $data['vip'] = !empty($data['vip']);
-
         $atelier = Atelier::findOrFail($id);
+
+        // Vérifier la disponibilité de la salle si salle_id, date et durée sont fournis
+        if (!empty($data['salle_id']) && !empty($data['date']) && !empty($data['duree'])) {
+            $salle = \App\Models\Salle::findOrFail($data['salle_id']);
+
+            // Exclure l'atelier en cours de modification de la vérification
+            if (!$salle->isDisponible($data['date'], $data['duree'], $id)) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['salle_id' => 'Cette salle n\'est pas disponible pour le créneau sélectionné.']);
+            }
+        }
+
+        $data['vip'] = !empty($data['vip']);
         $atelier->update($data);
 
         return redirect(url('/ateliers'))->with('success', 'Atelier mis à jour.');

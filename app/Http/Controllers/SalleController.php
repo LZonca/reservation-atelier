@@ -70,4 +70,33 @@ class SalleController extends Controller
 
         return response()->json();
     }
+
+    /**
+     * Vérifie la disponibilité des salles pour un créneau donné
+     */
+    public function checkDisponibilite(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'duree' => 'required|integer|min:1',
+            'atelier_id' => 'nullable|string',
+        ]);
+
+        $date = $request->input('date');
+        $duree = $request->input('duree');
+        $atelierIdToExclude = $request->input('atelier_id');
+
+        // Récupérer les salles disponibles
+        $sallesDisponibles = Salle::getSallesDisponibles($date, $duree, $atelierIdToExclude);
+
+        // Retourner les IDs des salles disponibles
+        $disponibles = $sallesDisponibles->pluck('_id')->map(function ($id) {
+            return (string) $id;
+        })->toArray();
+
+        return response()->json([
+            'disponibles' => $disponibles,
+            'count' => count($disponibles),
+        ]);
+    }
 }

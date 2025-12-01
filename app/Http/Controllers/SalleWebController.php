@@ -41,7 +41,17 @@ class SalleWebController extends Controller
     public function show($id)
     {
         $salle = Salle::with('boutique')->findOrFail($id);
-        return view('salles.show', compact('salle'));
+
+        // Récupérer le calendrier d'occupation pour les 7 prochains jours
+        $calendrier = $salle->getCalendrierOccupation(7);
+
+        // Récupérer l'atelier en cours si la salle est occupée
+        $atelierEnCours = $salle->getAtelierEnCours();
+
+        // Récupérer les prochains ateliers
+        $prochainsAteliers = $salle->getProchainAteliers(5);
+
+        return view('salles.show', compact('salle', 'calendrier', 'atelierEnCours', 'prochainsAteliers'));
     }
 
     public function edit($id)

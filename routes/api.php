@@ -38,3 +38,7 @@ Route::post('/atelier/{atelier}/commentaires', [AtelierController::class, 'addCo
 Route::get('/atelier/{atelier}/commentaires', [AtelierController::class, 'getComments'])->name('api.ateliers.getComments');
 Route::put('/commentaires/{commentaire}', [CommentaireController::class, 'update'])->name('api.commentaire.update');
 Route::delete('/commentaires/{commentaire}', [CommentaireController::class, 'destroy'])->name('api.commentaire.destroy');
+
+// Route pour vérifier la disponibilité des salles
+Route::post('/salles/disponibilite', [\App\Http\Controllers\SalleController::class, 'checkDisponibilite'])->name('api.salles.disponibilite');
+
