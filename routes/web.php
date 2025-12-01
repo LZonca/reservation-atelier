@@ -51,6 +51,12 @@ Route::middleware('auth')->group(function () {
     Route::put('/boutiques/{boutique}', [BoutiqueWebController::class, 'update'])->name('boutiques.update');
     Route::delete('/boutiques/{boutique}', [BoutiqueWebController::class, 'destroy'])->name('boutiques.destroy');
 
+    // Routes pour affecter/retirer des employés et salles
+    Route::post('/boutiques/{boutique}/employes', [BoutiqueWebController::class, 'affectEmploye'])->name('boutiques.affectEmploye');
+    Route::delete('/boutiques/{boutique}/employes/{employe}', [BoutiqueWebController::class, 'retirerEmploye'])->name('boutiques.retirerEmploye');
+    Route::post('/boutiques/{boutique}/salles', [BoutiqueWebController::class, 'affectSalle'])->name('boutiques.affectSalle');
+    Route::delete('/boutiques/{boutique}/salles/{salle}', [BoutiqueWebController::class, 'retirerSalle'])->name('boutiques.retirerSalle');
+
     // Routes web pour les réservations (liste et détail)
     Route::get('/reservations', [ReservationWebController::class, 'index'])->name('reservations.index');
     Route::get('/reservations/{reservation}', [ReservationWebController::class, 'show'])->name('reservations.show');

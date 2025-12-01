@@ -18,6 +18,17 @@ class ClientsDisplay extends Component
     public $clientModalOpen = false;
     public $selectedClient = null;
 
+    // Modal création/édition
+    public $editModalOpen = false;
+    public $editingClientId = null;
+    public $editForm = [
+        'nom' => '',
+        'prenom' => '',
+        'email' => '',
+        'phone' => '',
+        'credit_fidelite' => 0,
+    ];
+
     // Gestion des commentaires
     public $addingComment = false;
     public $newComment = [
@@ -70,8 +81,11 @@ class ClientsDisplay extends Component
         $panierFromDb = $this->selectedClient->panier ?? ['ateliers' => []];
         $this->panier = $this->convertPanierIdsToString($panierFromDb);
 
+        // Ajuster automatiquement la méthode de paiement selon le contenu du panier
+        $hasVip = collect($this->panier['ateliers'] ?? [])->contains(fn($item) => $item['vip'] ?? false);
+        $this->methodePaiement = $hasVip ? 'credit_fidelite' : 'carte';
+
         $this->numCarte = '';
-        $this->methodePaiement = 'carte';
         $this->showPanierSection = false;
         $this->showPaiementForm = false;
         $this->clientModalOpen = true;
@@ -84,6 +98,106 @@ class ClientsDisplay extends Component
         $this->showPanierSection = false;
         $this->showPaiementForm = false;
         $this->addingComment = false;
+    }
+
+    // ==========================================
+    // GESTION DU MODAL CRÉATION/ÉDITION
+    // ==========================================
+
+    public function openCreateModal()
+    {
+        $this->editModalOpen = true;
+        $this->editingClientId = null;
+        $this->editForm = [
+            'nom' => '',
+            'prenom' => '',
+            'email' => '',
+            'phone' => '',
+            'credit_fidelite' => 0,
+        ];
+    }
+
+    public function openEditModal($clientId)
+    {
+        $client = Client::find($clientId);
+        if (!$client) {
+            session()->flash('error', 'Client introuvable.');
+            return;
+        }
+
+        $this->editModalOpen = true;
+        $this->editingClientId = $clientId;
+        $this->editForm = [
+            'nom' => $client->nom ?? '',
+            'prenom' => $client->prenom ?? '',
+            'email' => $client->email ?? '',
+            'phone' => $client->phone ?? '',
+            'credit_fidelite' => $client->credit_fidelite ?? 0,
+        ];
+    }
+
+    public function closeEditModal()
+    {
+        $this->editModalOpen = false;
+        $this->editingClientId = null;
+        $this->editForm = [
+            'nom' => '',
+            'prenom' => '',
+            'email' => '',
+            'phone' => '',
+            'credit_fidelite' => 0,
+        ];
+    }
+
+    public function saveClient()
+    {
+        $this->validate([
+            'editForm.nom' => 'required|string|max:255',
+            'editForm.prenom' => 'required|string|max:255',
+            'editForm.email' => 'required|email|max:255',
+            'editForm.phone' => 'required|string|max:20',
+            'editForm.credit_fidelite' => 'nullable|numeric|min:0',
+        ]);
+
+        try {
+            if ($this->editingClientId) {
+                // Mise à jour
+                $client = Client::find($this->editingClientId);
+                if (!$client) {
+                    session()->flash('error', 'Client introuvable.');
+                    return;
+                }
+
+                $client->update([
+                    'nom' => $this->editForm['nom'],
+                    'prenom' => $this->editForm['prenom'],
+                    'email' => $this->editForm['email'],
+                    'phone' => $this->editForm['phone'],
+                    'credit_fidelite' => $this->editForm['credit_fidelite'] ?? 0,
+                ]);
+
+                session()->flash('success', 'Client mis à jour avec succès.');
+            } else {
+                // Création
+                Client::create([
+                    'nom' => $this->editForm['nom'],
+                    'prenom' => $this->editForm['prenom'],
+                    'email' => $this->editForm['email'],
+                    'phone' => $this->editForm['phone'],
+                    'credit_fidelite' => $this->editForm['credit_fidelite'] ?? 0,
+                    'panier' => ['ateliers' => []],
+                ]);
+
+                session()->flash('success', 'Client créé avec succès.');
+            }
+
+            $this->closeEditModal();
+            $this->clients = Client::with('commentaires')->get();
+
+        } catch (\Exception $e) {
+            Log::error('[ClientsDisplay] Erreur sauvegarde client: ' . $e->getMessage());
+            session()->flash('error', 'Erreur lors de la sauvegarde du client.');
+        }
     }
 
     public function updatedSearch()
@@ -347,10 +461,19 @@ class ClientsDisplay extends Component
 
     public function processPanier()
     {
-        $this->validate([
-            'numCarte' => 'required|string|min:4',
+        // Validation conditionnelle selon la méthode de paiement
+        $rules = [
             'methodePaiement' => 'required|string|in:carte,virement,paypal,credit_fidelite',
-        ]);
+        ];
+
+        if ($this->methodePaiement === 'carte') {
+            $rules['numCarte'] = 'required|string|min:13|max:19'; // Numéro de carte bancaire
+        } elseif ($this->methodePaiement === 'virement') {
+            $rules['numCarte'] = 'required|string|min:15'; // IBAN
+        }
+        // Pas de validation pour PayPal et credit_fidelite
+
+        $this->validate($rules);
 
         if (empty($this->panier['ateliers'])) {
             session()->flash('error', 'Le panier est vide.');
@@ -358,12 +481,54 @@ class ClientsDisplay extends Component
         }
 
         try {
+            // Vérifier la compatibilité méthode de paiement / ateliers
+            $hasVip = false;
+            $hasNonVip = false;
+
+            foreach ($this->panier['ateliers'] as $item) {
+                $atelier = Atelier::find($item['id']);
+                if (!$atelier) {
+                    session()->flash('error', 'Atelier introuvable: ' . ($item['nom'] ?? 'Inconnu'));
+                    return;
+                }
+
+                if ($atelier->vip) {
+                    $hasVip = true;
+                } else {
+                    $hasNonVip = true;
+                }
+            }
+
+            // Validation des règles de paiement VIP
+            if ($this->methodePaiement == 'credit_fidelite' && $hasNonVip) {
+                session()->flash('error', "Les crédits de fidélité ne peuvent être utilisés que pour les ateliers VIP. Veuillez retirer les ateliers non-VIP de votre panier.");
+                return;
+            }
+
+            if ($hasVip && $this->methodePaiement != 'credit_fidelite') {
+                session()->flash('error', "Les ateliers VIP ne peuvent être payés qu'avec des crédits de fidélité. Veuillez choisir 'Crédit de fidélité' comme méthode de paiement.");
+                return;
+            }
+
+            // Vérifier les crédits disponibles si paiement par crédit
+            if ($this->methodePaiement == 'credit_fidelite') {
+                $totalCreditsNeeded = 0;
+                foreach ($this->panier['ateliers'] as $item) {
+                    $totalCreditsNeeded += $item['quantity'] * 10; // 10 crédits par personne
+                }
+
+                if ($this->selectedClient->credit_fidelite < $totalCreditsNeeded) {
+                    session()->flash('error', "Crédits de fidélité insuffisants. Requis: {$totalCreditsNeeded}, Disponible: {$this->selectedClient->credit_fidelite}");
+                    return;
+                }
+            }
+
             // Vérifier la capacité pour tous les ateliers
             foreach ($this->panier['ateliers'] as $item) {
                 $atelier = Atelier::find($item['id']);
 
                 if (!$atelier) {
-                    session()->flash('error', 'Atelier introuvable: ' . $item['nom']);
+                    session()->flash('error', 'Atelier introuvable: ' . ($item['nom'] ?? 'Inconnu'));
                     return;
                 }
 
@@ -376,33 +541,48 @@ class ClientsDisplay extends Component
 
             // Créer les réservations
             $reservations = [];
+            $totalCreditsUsed = 0;
 
             foreach ($this->panier['ateliers'] as $item) {
                 $atelier = Atelier::find($item['id']);
                 $prix = ($atelier->prix ?? 0) * $item['quantity'];
 
-                // Gestion des ateliers VIP
+                // Gestion des paiements VIP par crédit
                 if ($atelier->vip && $this->methodePaiement == 'credit_fidelite') {
-                    if ($this->selectedClient->credit_fidelite < 10) {
-                        session()->flash('error', "Crédits de fidélité insuffisants. Requis: 10, Disponible: {$this->selectedClient->credit_fidelite}");
-                        return;
-                    }
-                    $prix = 0;
-                    $this->selectedClient->credit_fidelite -= 10;
-                } elseif ($atelier->vip && $this->methodePaiement != 'credit_fidelite') {
-                    session()->flash('error', "Les ateliers VIP ne peuvent être payés qu'avec des crédits de fidélité. Atelier: {$atelier->nom}");
-                    return;
-                } elseif (!$atelier->vip && $this->methodePaiement == 'credit_fidelite') {
-                    session()->flash('error', "Les crédits de fidélité ne sont utilisables que pour les ateliers VIP. Votre solde: {$this->selectedClient->credit_fidelite}");
-                    return;
+                    $creditsNeeded = $item['quantity'] * 10;
+                    $totalCreditsUsed += $creditsNeeded;
+                    $prix = 0; // Gratuit quand payé avec crédits
                 }
 
                 // Créer les paiements embarqués avec ObjectId
                 $paiementId = new ObjectId();
+
+                // Gérer le numéro de carte/identifiant selon la méthode de paiement
+                $identifiantPaiement = '';
+                switch ($this->methodePaiement) {
+                    case 'credit_fidelite':
+                        $identifiantPaiement = 'CREDIT_FIDELITE';
+                        break;
+                    case 'carte':
+                        // Masquer le numéro de carte (garder les 4 derniers chiffres)
+                        $identifiantPaiement = '****' . substr($this->numCarte, -4);
+                        break;
+                    case 'virement':
+                        // Masquer l'IBAN (garder les 4 derniers caractères)
+                        $identifiantPaiement = 'IBAN ****' . substr(str_replace(' ', '', $this->numCarte), -4);
+                        break;
+                    case 'paypal':
+                        // Générer un ID de transaction PayPal simulé
+                        $identifiantPaiement = 'PP-' . strtoupper(uniqid()) . '-' . rand(1000, 9999);
+                        break;
+                    default:
+                        $identifiantPaiement = $this->numCarte;
+                }
+
                 $paiements = [];
                 $paiements[] = [
                     '_id' => $paiementId,
-                    'numCarte' => $this->numCarte,
+                    'numCarte' => $identifiantPaiement,
                     'montant' => $prix,
                     'methode_paiement' => $this->methodePaiement,
                     'statut' => 'validé',
@@ -425,12 +605,18 @@ class ClientsDisplay extends Component
 
                 $atelier->push('reservations', $reservationData);
 
-                // Ajouter des crédits de fidélité (sauf si payé avec crédits)
-                if ($this->methodePaiement != 'credit_fidelite') {
+                $reservations[] = $reservationData;
+            }
+
+            // Gérer les crédits de fidélité
+            if ($this->methodePaiement == 'credit_fidelite') {
+                // Déduire les crédits utilisés
+                $this->selectedClient->credit_fidelite -= $totalCreditsUsed;
+            } else {
+                // Ajouter des crédits pour les achats non-VIP (1 crédit par personne)
+                foreach ($this->panier['ateliers'] as $item) {
                     $this->selectedClient->credit_fidelite += $item['quantity'];
                 }
-
-                $reservations[] = $reservationData;
             }
 
             // Vider le panier
@@ -447,13 +633,43 @@ class ClientsDisplay extends Component
             $this->selectedClient->refresh();
 
             $totalReservations = count($reservations);
-            session()->flash('success', "Paiement effectué avec succès! {$totalReservations} réservation(s) créée(s). Crédits de fidélité: {$this->selectedClient->credit_fidelite}");
+            $message = "Paiement effectué avec succès! {$totalReservations} réservation(s) créée(s).";
+
+            if ($this->methodePaiement == 'credit_fidelite') {
+                $message .= " {$totalCreditsUsed} crédits utilisés. Solde restant: {$this->selectedClient->credit_fidelite}";
+            } else {
+                $message .= " Crédits de fidélité gagnés: +{$totalReservations}. Nouveau solde: {$this->selectedClient->credit_fidelite}";
+            }
+
+            session()->flash('success', $message);
 
         } catch (\Exception $e) {
             Log::error('[ClientsDisplay] Erreur traitement panier: ' . $e->getMessage(), [
                 'exception' => $e
             ]);
             session()->flash('error', 'Erreur lors du traitement du panier: ' . $e->getMessage());
+        }
+    }
+
+    public function updatedMethodePaiement()
+    {
+        // Réinitialiser le numéro de carte quand on change de méthode
+        $this->numCarte = '';
+    }
+
+    public function updatedPanier()
+    {
+        // Quand le panier change, ajuster automatiquement la méthode de paiement
+        $hasVip = collect($this->panier['ateliers'] ?? [])->contains(fn($item) => $item['vip'] ?? false);
+
+        if ($hasVip && $this->methodePaiement !== 'credit_fidelite') {
+            // Si le panier contient des VIP et que la méthode n'est pas crédit fidélité, forcer le crédit fidélité
+            $this->methodePaiement = 'credit_fidelite';
+            $this->numCarte = '';
+        } elseif (!$hasVip && $this->methodePaiement === 'credit_fidelite') {
+            // Si le panier ne contient plus de VIP mais que la méthode est crédit fidélité, passer à carte
+            $this->methodePaiement = 'carte';
+            $this->numCarte = '';
         }
     }
 

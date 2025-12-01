@@ -27,6 +27,59 @@ class DashboardController extends Controller
         }, 0);
 
         $reservations = $externalReservations + $embeddedReservations;
+
+        // Calculer le revenu total des réservations actives (non annulées avec soft delete)
+        $reservationsActives = Atelier::all()->reduce(function ($carry, $atelier) {
+            // S'assurer que $carry est un nombre
+            $carry = is_numeric($carry) ? $carry : 0;
+
+            if (is_array($atelier->reservations)) {
+                // Filtrer les réservations sans deleted_at et sommer les montants des paiements
+                $activeRevenue = collect($atelier->reservations)
+                    ->filter(function ($reservation) {
+                        return empty($reservation['deleted_at']);
+                    })
+                    ->sum(function ($reservation) {
+                        // Récupérer le montant du paiement (peut être dans paiements ou paiement)
+                        $paiements = $reservation['paiements'] ?? $reservation['paiement'] ?? null;
+
+                        if (is_array($paiements)) {
+                            // Si c'est un tableau, prendre le premier paiement ou parcourir tous
+                            if (isset($paiements[0])) {
+                                return (float) ($paiements[0]['montant'] ?? 0);
+                            } elseif (isset($paiements['montant'])) {
+                                return (float) ($paiements['montant'] ?? 0);
+                            }
+                        }
+
+                        return 0;
+                    });
+                $carry += $activeRevenue;
+            } elseif ($atelier->reservations) {
+                $activeRevenue = $atelier->reservations
+                    ->filter(function ($reservation) {
+                        return empty($reservation->deleted_at);
+                    })
+                    ->sum(function ($reservation) {
+                        $paiements = $reservation->paiements ?? $reservation->paiement ?? null;
+
+                        if (is_array($paiements)) {
+                            if (isset($paiements[0])) {
+                                return (float) ($paiements[0]['montant'] ?? 0);
+                            } elseif (isset($paiements['montant'])) {
+                                return (float) ($paiements['montant'] ?? 0);
+                            }
+                        } elseif (is_object($paiements)) {
+                            return (float) ($paiements->montant ?? 0);
+                        }
+
+                        return 0;
+                    });
+                $carry += $activeRevenue;
+            }
+            return $carry;
+        }, 0);
+
         $clients = Client::count();
         $intervenants = Intervenant::count();
 
@@ -48,9 +101,9 @@ class DashboardController extends Controller
 
         // Si la requête veut du JSON, renvoyer un payload JSON (utile pour un front JS)
         if ($request->wantsJson()) {
-            return response()->json(compact('ateliers', 'salles', 'boutiques', 'reservations', 'clients', 'intervenants', 'recentAteliers', 'recentReservations', 'recentBoutiques', 'apiRoutes'));
+            return response()->json(compact('ateliers', 'salles', 'boutiques', 'reservations', 'reservationsActives', 'clients', 'intervenants', 'recentAteliers', 'recentReservations', 'recentBoutiques', 'apiRoutes'));
         }
 
-        return view('dashboard', compact('ateliers', 'salles', 'boutiques', 'reservations', 'clients', 'intervenants', 'recentAteliers', 'recentReservations', 'recentBoutiques', 'apiRoutes'));
+        return view('dashboard', compact('ateliers', 'salles', 'boutiques', 'reservations', 'reservationsActives', 'clients', 'intervenants', 'recentAteliers', 'recentReservations', 'recentBoutiques', 'apiRoutes'));
     }
 }

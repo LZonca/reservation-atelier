@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Boutique;
 use App\Models\Adresse;
+use App\Models\User;
 
 class BoutiqueWebController extends Controller
 {
@@ -43,7 +44,21 @@ class BoutiqueWebController extends Controller
     public function show($id)
     {
         $boutique = Boutique::findOrFail($id);
-        return view('boutiques.show', compact('boutique'));
+
+        // Charger les employés associés à cette boutique via la relation
+        $employes = \App\Models\User::where('boutique_id', new \MongoDB\BSON\ObjectId((string) $id))->get();
+
+        // Charger les salles : d'abord les embarquées, sinon les salles liées par boutique_id
+        $sallesEmbedded = collect($boutique->salles ?? []);
+
+        if ($sallesEmbedded->isEmpty()) {
+            // Utiliser la relation hasMany si pas de salles embarquées
+            $salles = \App\Models\Salle::where('boutique_id', new \MongoDB\BSON\ObjectId((string) $id))->get();
+        } else {
+            $salles = $sallesEmbedded;
+        }
+
+        return view('boutiques.show', compact('boutique', 'employes', 'salles'));
     }
 
     public function edit($id)
@@ -84,5 +99,71 @@ class BoutiqueWebController extends Controller
         $boutique->delete();
 
         return redirect(url('/boutiques'))->with('success', 'Boutique supprimée.');
+    }
+
+    /**
+     * Affecter un employé à une boutique
+     */
+    public function affectEmploye(Request $request, $boutiqueId)
+    {
+        $request->validate([
+            'employe_id' => 'required|string',
+        ]);
+
+        $boutique = Boutique::findOrFail($boutiqueId);
+        $employe = User::findOrFail($request->employe_id);
+
+        // Affecter l'employé à la boutique
+        $employe->boutique_id = new \MongoDB\BSON\ObjectId((string) $boutiqueId);
+        $employe->save();
+
+        return redirect(url('/boutiques/' . $boutiqueId))
+            ->with('success', "Employé {$employe->name} affecté à la boutique avec succès.");
+    }
+
+    /**
+     * Retirer un employé d'une boutique
+     */
+    public function retirerEmploye($boutiqueId, $employeId)
+    {
+        $employe = User::findOrFail($employeId);
+        $employe->boutique_id = null;
+        $employe->save();
+
+        return redirect(url('/boutiques/' . $boutiqueId))
+            ->with('success', "Employé {$employe->name} retiré de la boutique.");
+    }
+
+    /**
+     * Affecter une salle à une boutique
+     */
+    public function affectSalle(Request $request, $boutiqueId)
+    {
+        $request->validate([
+            'salle_id' => 'required|string',
+        ]);
+
+        $boutique = Boutique::findOrFail($boutiqueId);
+        $salle = \App\Models\Salle::findOrFail($request->salle_id);
+
+        // Affecter la salle à la boutique
+        $salle->boutique_id = new \MongoDB\BSON\ObjectId((string) $boutiqueId);
+        $salle->save();
+
+        return redirect(url('/boutiques/' . $boutiqueId))
+            ->with('success', "Salle {$salle->nom} affectée à la boutique avec succès.");
+    }
+
+    /**
+     * Retirer une salle d'une boutique
+     */
+    public function retirerSalle($boutiqueId, $salleId)
+    {
+        $salle = \App\Models\Salle::findOrFail($salleId);
+        $salle->boutique_id = null;
+        $salle->save();
+
+        return redirect(url('/boutiques/' . $boutiqueId))
+            ->with('success', "Salle {$salle->nom} retirée de la boutique.");
     }
 }

@@ -18,8 +18,18 @@ class AtelierWebController extends Controller
     // Formulaire de création
     public function create()
     {
-        $salles = Salle::orderBy('nom')->get();
-        return view('ateliers.create', compact('salles'));
+        // Charger les salles groupées par boutique
+        $sallesParBoutique = \App\Models\Salle::with('boutique')
+            ->orderBy('nom')
+            ->get()
+            ->groupBy(function($salle) {
+                return $salle->boutique ? $salle->boutique->nom : 'Sans boutique';
+            });
+
+        // Charger les intervenants (employés)
+        $intervenants = \App\Models\User::orderBy('name')->get();
+
+        return view('ateliers.create', compact('sallesParBoutique', 'intervenants'));
     }
 
     // Stocker un nouvel atelier
@@ -32,6 +42,7 @@ class AtelierWebController extends Controller
             'duree' => 'nullable|string|max:100',
             'prix' => 'nullable|numeric',
             'salle_id' => 'nullable|string',
+            'employe_id' => 'nullable|string',
             'vip' => 'sometimes|boolean',
         ]);
 
@@ -62,8 +73,19 @@ class AtelierWebController extends Controller
     public function edit($id)
     {
         $atelier = Atelier::findOrFail($id);
-        $salles = Salle::orderBy('nom')->get();
-        return view('ateliers.edit', compact('atelier', 'salles'));
+
+        // Charger les salles groupées par boutique
+        $sallesParBoutique = \App\Models\Salle::with('boutique')
+            ->orderBy('nom')
+            ->get()
+            ->groupBy(function($salle) {
+                return $salle->boutique ? $salle->boutique->nom : 'Sans boutique';
+            });
+
+        // Charger les intervenants (employés)
+        $intervenants = \App\Models\User::orderBy('name')->get();
+
+        return view('ateliers.edit', compact('atelier', 'sallesParBoutique', 'intervenants'));
     }
 
     // Mettre à jour
@@ -76,6 +98,7 @@ class AtelierWebController extends Controller
             'duree' => 'nullable|string|max:100',
             'prix' => 'nullable|numeric',
             'salle_id' => 'nullable|string',
+            'employe_id' => 'nullable|string',
             'vip' => 'sometimes|boolean',
         ]);
 

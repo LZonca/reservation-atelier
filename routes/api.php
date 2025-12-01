@@ -23,6 +23,7 @@ Route::post('/clients/{client}/panier/process', [ClientController::class, 'proce
 
 Route::get('/ateliers', [AtelierController::class, 'index'])->name('api.ateliers.index');
 Route::get('/ateliers/{atelier}', [AtelierController::class, 'show'])->name('api.ateliers.show');
+Route::get('/ateliers/{atelier}/statistics', [AtelierController::class, 'statistics'])->name('api.ateliers.statistics');
 Route::post('/ateliers', [AtelierController::class, 'store'])->name('api.ateliers.store');
 Route::put('/ateliers/{atelier}', [AtelierController::class, 'update'])->name('api.ateliers.update');
 Route::patch('/ateliers/{atelier}', [AtelierController::class, 'update'])->name('api.ateliers.update.patch');

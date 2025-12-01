@@ -139,10 +139,21 @@ class ClientController extends Controller
 
     public function processPanier(Client $client, Request $request)
     {
-        $data = $request->validate([
-            'numCarte' => ['required', 'string'],
-            'methode_paiement' => ['nullable', 'string', 'in:carte,virement,paypal,credit_fidelite'],
-        ]);
+        $methodePaiement = $request->input('methode_paiement', 'carte');
+
+        // Validation conditionnelle selon la méthode de paiement
+        $rules = [
+            'methode_paiement' => ['required', 'string', 'in:carte,virement,paypal,credit_fidelite'],
+        ];
+
+        if ($methodePaiement === 'carte') {
+            $rules['numCarte'] = ['required', 'string', 'min:13', 'max:19']; // Numéro de carte bancaire
+        } elseif ($methodePaiement === 'virement') {
+            $rules['numCarte'] = ['required', 'string', 'min:15']; // IBAN
+        }
+        // Pas de validation pour PayPal et credit_fidelite
+
+        $data = $request->validate($rules);
 
         $panier = $client->panier;
 
@@ -150,78 +161,162 @@ class ClientController extends Controller
             return response()->json(['message' => 'Le panier est vide.'], 400);
         }
 
-        // Vérifier la capacité pour tous les ateliers
+        // Vérifier la compatibilité méthode de paiement / ateliers
+        $hasVip = false;
+        $hasNonVip = false;
+
         foreach ($panier['ateliers'] as $item) {
             $atelier = Atelier::find($item['id']);
             if (!$atelier) {
-                return response()->json(['message' => 'Atelier introuvable: ' . $item['id']], 404);
+                return response()->json(['message' => 'Atelier introuvable: ' . ($item['nom'] ?? 'Inconnu')], 404);
             }
 
-            if ($atelier->remainingCapacity() < $item['quantity']) {
+            if ($atelier->vip) {
+                $hasVip = true;
+            } else {
+                $hasNonVip = true;
+            }
+        }
+
+        // Validation des règles de paiement VIP
+        if ($methodePaiement == 'credit_fidelite' && $hasNonVip) {
+            return response()->json([
+                'message' => 'Les crédits de fidélité ne peuvent être utilisés que pour les ateliers VIP. Veuillez retirer les ateliers non-VIP de votre panier.'
+            ], 422);
+        }
+
+        if ($hasVip && $methodePaiement != 'credit_fidelite') {
+            return response()->json([
+                'message' => 'Les ateliers VIP ne peuvent être payés qu\'avec des crédits de fidélité. Veuillez choisir \'Crédit de fidélité\' comme méthode de paiement.'
+            ], 422);
+        }
+
+        // Vérifier les crédits disponibles si paiement par crédit
+        if ($methodePaiement == 'credit_fidelite') {
+            $totalCreditsNeeded = 0;
+            foreach ($panier['ateliers'] as $item) {
+                $totalCreditsNeeded += $item['quantity'] * 10; // 10 crédits par personne
+            }
+
+            if ($client->credit_fidelite < $totalCreditsNeeded) {
                 return response()->json([
-                    'message' => 'Capacité insuffisante pour l\'atelier: ' . $atelier->nom,
-                    'remaining' => $atelier->remainingCapacity()
+                    'message' => "Crédits de fidélité insuffisants. Requis: {$totalCreditsNeeded}, Disponible: {$client->credit_fidelite}"
+                ], 422);
+            }
+        }
+
+        // Vérifier la capacité pour tous les ateliers
+        foreach ($panier['ateliers'] as $item) {
+            $atelier = Atelier::find($item['id']);
+
+            if (!$atelier) {
+                return response()->json(['message' => 'Atelier introuvable: ' . ($item['nom'] ?? 'Inconnu')], 404);
+            }
+
+            $remaining = $atelier->remainingCapacity();
+            if ($remaining < $item['quantity']) {
+                return response()->json([
+                    'message' => "Capacité insuffisante pour l'atelier {$atelier->nom}. Places restantes: {$remaining}"
                 ], 422);
             }
         }
 
         // Créer les réservations
         $reservations = [];
+        $totalCreditsUsed = 0;
 
         foreach ($panier['ateliers'] as $item) {
             $atelier = Atelier::find($item['id']);
             $prix = ($atelier->prix ?? 0) * $item['quantity'];
-            $methodePaiement = $data['methode_paiement'] ?? 'carte';
 
-            // Gestion des ateliers VIP
+            // Gestion des paiements VIP par crédit
             if ($atelier->vip && $methodePaiement == 'credit_fidelite') {
-                if ($client->credit_fidelite < 10) {
-                    return response()->json([
-                        'message' => 'Crédits de fidélité insuffisants. Requis: 10, Disponible: ' . $client->credit_fidelite,
-                    ], 422);
-                }
-                $prix = 0;
-                $client->credit_fidelite -= 10;
-            } elseif ($atelier->vip && $methodePaiement != 'credit_fidelite') {
-                return response()->json([
-                    'message' => 'Les ateliers VIP ne peuvent être payés qu\'avec des crédits de fidélité. Atelier: ' . $atelier->nom,
-                ], 422);
-            } elseif (!$atelier->vip && $methodePaiement == 'credit_fidelite') {
-                return response()->json([
-                    'message' => 'Les crédits de fidélité ne sont utilisables que pour les ateliers VIP. Votre solde: ' . $client->credit_fidelite,
-                ], 422);
+                $creditsNeeded = $item['quantity'] * 10;
+                $totalCreditsUsed += $creditsNeeded;
+                $prix = 0; // Gratuit quand payé avec crédits
             }
 
-            // Créer la réservation avec ObjectId
-            $reservation = $atelier->reservations()->create([
-                'nbPersonne' => $item['quantity'],
-                'prix' => $prix,
-                'client_id' => new ObjectId((string) $client->_id),
-            ]);
+            // Gérer le numéro de carte/identifiant selon la méthode de paiement
+            $identifiantPaiement = '';
+            switch ($methodePaiement) {
+                case 'credit_fidelite':
+                    $identifiantPaiement = 'CREDIT_FIDELITE';
+                    break;
+                case 'carte':
+                    // Masquer le numéro de carte (garder les 4 derniers chiffres)
+                    $numCarte = $data['numCarte'] ?? '';
+                    $identifiantPaiement = '****' . substr($numCarte, -4);
+                    break;
+                case 'virement':
+                    // Masquer l'IBAN (garder les 4 derniers caractères)
+                    $numCarte = $data['numCarte'] ?? '';
+                    $identifiantPaiement = 'IBAN ****' . substr(str_replace(' ', '', $numCarte), -4);
+                    break;
+                case 'paypal':
+                    // Générer un ID de transaction PayPal simulé
+                    $identifiantPaiement = 'PP-' . strtoupper(uniqid()) . '-' . rand(1000, 9999);
+                    break;
+                default:
+                    $identifiantPaiement = $data['numCarte'] ?? '';
+            }
 
-            // Créer le paiement
-            $reservation->paiement()->create([
-                'numCarte' => $data['numCarte'],
+            // Créer les paiements embarqués avec ObjectId
+            $paiementId = new ObjectId();
+            $paiements = [];
+            $paiements[] = [
+                '_id' => $paiementId,
+                'numCarte' => $identifiantPaiement,
                 'montant' => $prix,
                 'methode_paiement' => $methodePaiement,
                 'statut' => 'validé',
                 'payement_recieved_at' => now(),
-            ]);
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
 
-            // Ajouter des crédits de fidélité (sauf si payé avec crédits)
-            if ($methodePaiement != 'credit_fidelite') {
+            // Créer la réservation avec paiements embarqués et ObjectId
+            $reservationId = new ObjectId();
+            $reservationData = [
+                '_id' => $reservationId,
+                'nbPersonne' => $item['quantity'],
+                'prix' => $prix,
+                'client_id' => new ObjectId((string) $client->_id),
+                'paiements' => $paiements,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            $atelier->push('reservations', $reservationData);
+
+            $reservations[] = $reservationData;
+        }
+
+        // Gérer les crédits de fidélité
+        if ($methodePaiement == 'credit_fidelite') {
+            // Déduire les crédits utilisés
+            $client->credit_fidelite -= $totalCreditsUsed;
+        } else {
+            // Ajouter des crédits pour les achats non-VIP (1 crédit par personne)
+            foreach ($panier['ateliers'] as $item) {
                 $client->credit_fidelite += $item['quantity'];
             }
-
-            $reservations[] = $reservation;
         }
 
         // Vider le panier
         $client->panier = ['ateliers' => []];
         $client->save();
 
+        $totalReservations = count($reservations);
+        $message = "Paiement effectué avec succès! {$totalReservations} réservation(s) créée(s).";
+
+        if ($methodePaiement == 'credit_fidelite') {
+            $message .= " {$totalCreditsUsed} crédits utilisés. Solde restant: {$client->credit_fidelite}";
+        } else {
+            $message .= " Crédits de fidélité gagnés: +{$totalReservations}. Nouveau solde: {$client->credit_fidelite}";
+        }
+
         return response()->json([
-            'message' => 'Panier traité avec succès. Réservations créées.',
+            'message' => $message,
             'reservations' => $reservations,
             'credit_fidelite' => $client->credit_fidelite,
         ], 201);

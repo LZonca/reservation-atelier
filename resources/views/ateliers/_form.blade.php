@@ -33,13 +33,34 @@
         <label class="block text-sm font-medium text-gray-700">Salle</label>
         <select name="salle_id" class="mt-1 block w-full border rounded-md px-3 py-2 text-sm">
             <option value="">-- Choisir une salle (optionnel) --</option>
-            @isset($salles)
-                @foreach($salles as $salle)
-                    <option value="{{ $salle->getKey() }}" {{ (string) old('salle_id', $atelier->salle_id ?? '') === (string) $salle->getKey() ? 'selected' : '' }}>{{ $salle->nom ?? $salle->titre ?? $salle->getKey() }}</option>
+            @isset($sallesParBoutique)
+                @foreach($sallesParBoutique as $boutiqueNom => $salles)
+                    <optgroup label="{{ $boutiqueNom }}">
+                        @foreach($salles as $salle)
+                            <option value="{{ $salle->getKey() }}" {{ (string) old('salle_id', $atelier->salle_id ?? '') === (string) $salle->getKey() ? 'selected' : '' }}>
+                                {{ $salle->nom ?? $salle->titre ?? $salle->getKey() }} - {{ $salle->capacite ?? '—' }} places ({{ $salle->categorie ?? 'Non catégorisée' }})
+                            </option>
+                        @endforeach
+                    </optgroup>
                 @endforeach
             @endisset
         </select>
         @error('salle_id') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+    </div>
+
+    <div>
+        <label class="block text-sm font-medium text-gray-700">Intervenant</label>
+        <select name="employe_id" class="mt-1 block w-full border rounded-md px-3 py-2 text-sm">
+            <option value="">-- Choisir un intervenant (optionnel) --</option>
+            @isset($intervenants)
+                @foreach($intervenants as $intervenant)
+                    <option value="{{ $intervenant->getKey() }}" {{ (string) old('employe_id', $atelier->employe_id ?? '') === (string) $intervenant->getKey() ? 'selected' : '' }}>
+                        {{ $intervenant->name }} ({{ $intervenant->email }})
+                    </option>
+                @endforeach
+            @endisset
+        </select>
+        @error('employe_id') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
     </div>
 
     <div class="flex items-center space-x-4">

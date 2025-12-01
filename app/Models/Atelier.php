@@ -92,17 +92,6 @@ class Atelier extends EloquentModel
         return max(0, $salleCapacite - $reserved);
     }
 
-    /**
-     * Récupère les réservations supprimées (soft-deleted)
-     *
-     * @return \Illuminate\Support\Collection
-     */
-    public function deletedReservations()
-    {
-        return $this->reservations->filter(function($reservation) {
-            return !empty($reservation->deleted_at);
-        });
-    }
 
     protected function casts(): array
     {
