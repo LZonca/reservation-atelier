@@ -7,6 +7,7 @@
 namespace Database\Factories;
 
 use App\Models\Atelier;
+use App\Models\InfoContact;
 use App\Models\User;
 use App\Models\Salle;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -50,8 +51,7 @@ class AtelierFactory extends Factory
             'intervenant' => [
                 'nom' => $this->faker->lastName(),
                 'prenom' => $this->faker->firstName(),
-                'email' => $this->faker->unique()->safeEmail(),
-                'telephone' => $this->faker->phoneNumber(),
+                'infoContact' => InfoContact::factory()->raw(),
             ],
             'vip' => $this->faker->boolean(30), // 30% de chances d'être VIP
             'created_at' => Carbon::now(),

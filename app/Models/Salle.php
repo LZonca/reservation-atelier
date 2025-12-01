@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model as EloquentModel;
 use MongoDB\Laravel\Eloquent\DocumentModel;
@@ -36,12 +37,12 @@ class Salle extends EloquentModel
     /**
      * Vérifie si la salle est occupée à un moment donné
      *
-     * @param \Carbon\Carbon|string $dateTime
+     * @param Carbon|string $dateTime
      * @return bool
      */
     public function isOccupiedAt($dateTime)
     {
-        $dateTime = \Carbon\Carbon::parse($dateTime);
+        $dateTime = Carbon::parse($dateTime);
 
         // Récupérer tous les ateliers de cette salle (convertir l'ID en ObjectId)
         $salleId = is_string($this->_id) ? new \MongoDB\BSON\ObjectId($this->_id) : $this->_id;
@@ -52,7 +53,7 @@ class Salle extends EloquentModel
                 continue;
             }
 
-            $atelierStart = \Carbon\Carbon::parse($atelier->date);
+            $atelierStart = Carbon::parse($atelier->date);
             $duree = is_numeric($atelier->duree) ? (int) $atelier->duree : 0;
             $atelierEnd = $atelierStart->copy()->addHours($duree);
 
@@ -100,7 +101,7 @@ class Salle extends EloquentModel
                 continue;
             }
 
-            $atelierStart = \Carbon\Carbon::parse($atelier->date);
+            $atelierStart = Carbon::parse($atelier->date);
             $duree = is_numeric($atelier->duree) ? (int) $atelier->duree : 0;
             $atelierEnd = $atelierStart->copy()->addHours($duree);
 
@@ -146,14 +147,14 @@ class Salle extends EloquentModel
     /**
      * Vérifie si la salle est disponible pour un créneau donné (date + durée)
      *
-     * @param \Carbon\Carbon|string $dateTime
+     * @param Carbon|string $dateTime
      * @param int $duree Durée en heures
      * @param string|null $atelierIdToExclude ID de l'atelier à exclure (pour les mises à jour)
      * @return bool
      */
     public function isDisponible($dateTime, $duree, $atelierIdToExclude = null)
     {
-        $dateTime = \Carbon\Carbon::parse($dateTime);
+        $dateTime = Carbon::parse($dateTime);
         $duree = is_numeric($duree) ? (int) $duree : 0;
         $finAtelier = $dateTime->copy()->addHours($duree);
 
@@ -175,7 +176,7 @@ class Salle extends EloquentModel
                 continue;
             }
 
-            $atelierStart = \Carbon\Carbon::parse($atelier->date);
+            $atelierStart = Carbon::parse($atelier->date);
             $atelierDuree = is_numeric($atelier->duree) ? (int) $atelier->duree : 0;
             $atelierEnd = $atelierStart->copy()->addHours($atelierDuree);
 
@@ -192,7 +193,7 @@ class Salle extends EloquentModel
     /**
      * Récupère toutes les salles disponibles pour un créneau donné
      *
-     * @param \Carbon\Carbon|string $dateTime
+     * @param Carbon|string $dateTime
      * @param int $duree Durée en heures
      * @param string|null $atelierIdToExclude ID de l'atelier à exclure
      * @return \Illuminate\Support\Collection

@@ -23,6 +23,7 @@ class Boutique extends EloquentModel
 
     protected $fillable = [
         'nom',
+        'infoContact',
         'created_at',
         'updated_at',
     ];
@@ -30,6 +31,11 @@ class Boutique extends EloquentModel
     public function adresse(): EmbedsOne
     {
         return $this->embedsOne(Adresse::class);
+    }
+
+    public function infoContact(): EmbedsOne
+    {
+        return $this->embedsOne(InfoContact::class);
     }
 
     public function salles()
