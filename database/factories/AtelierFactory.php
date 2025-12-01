@@ -48,7 +48,7 @@ class AtelierFactory extends Factory
 
         return [
             'nom' => $this->faker->randomElement($adjectifs) . ' ' . strtolower($categorie),
-            'date' => $this->faker->dateTimeBetween('now', '+2 months'),
+            'date' => $this->faker->dateTimeBetween('now', '+1 months'),
             'description' => $this->faker->sentence(10),
             'duree' => $this->faker->numberBetween(1, 4),
             'prix' => $this->faker->randomFloat(2, 10, 100),
