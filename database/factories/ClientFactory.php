@@ -17,7 +17,6 @@ class ClientFactory extends Factory
         return [
             'nom' => $nom,
             'prenom' => $prenom,
-            // email is THE nom.prenom@gmail.com
             'email' => strtolower($prenom) . '.' . strtolower($nom) . rand(0, 999999) . '@gmail.com',
             'phone' => $this->faker->phoneNumber(),
             'panier' => [
