@@ -28,8 +28,8 @@ class AtelierSeeder extends Seeder
         $ateliers = [];
 
         // 15 ateliers normaux
-        foreach (range(1, 100) as $index) {
-            $this->command->info("   → Création atelier normal {$index}/70");
+        foreach (range(1, 250) as $index) {
+            $this->command->info("   → Création atelier normal {$index}/250");
 
             // Essayer de créer un atelier sans collision
             $atelier = $this->createAtelierWithoutCollision($users, $salles, false);
@@ -42,8 +42,8 @@ class AtelierSeeder extends Seeder
         }
 
         // 5 ateliers VIP
-        foreach (range(1, 10) as $index) {
-            $this->command->info("   → Création atelier VIP {$index}/5");
+        foreach (range(1, 30) as $index) {
+            $this->command->info("   → Création atelier VIP {$index}/30");
 
             // Essayer de créer un atelier VIP sans collision
             $atelier = $this->createAtelierWithoutCollision($users, $salles, true);

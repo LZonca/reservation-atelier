@@ -2,7 +2,7 @@
 
 Application Laravel 12 avec MongoDB pour la gestion complète de réservations d'ateliers créatifs dans plusieurs boutiques.
 
-[![Laravel](https://img.shields.io/badge/Laravel-12-red.svg)](https://laravel.com)
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-red.svg)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2+-blue.svg)](https://php.net)
 [![MongoDB](https://img.shields.io/badge/MongoDB-7.x-green.svg)](https://mongodb.com)
 [![Livewire](https://img.shields.io/badge/Livewire-3.x-pink.svg)](https://livewire.laravel.com)
@@ -106,9 +106,9 @@ Statuts de paiement : `validé`, `en_attente`, `remboursé`, `échoué`
 ### Logiciels requis
 - **PHP 8.2+** (8.3 recommandé) - [Télécharger](https://www.php.net/downloads.php)
 - **Composer 2.x** - [Télécharger](https://getcomposer.org/download/)
-- **Node.js 18+** et npm - [Télécharger](https://nodejs.org/en/download/)
+- **Node.js 21+** et npm - [Télécharger](https://nodejs.org/en/download/)
 - **MongoDB 7.x** - [Télécharger](https://www.mongodb.com/try/download/community)
-- **Serveur web** (XAMPP, WAMP, Laragon, etc.)
+- **Serveur web** (XAMPP, WAMP, Laragon, etc.) [OPTIONNEL MAIS RECOMMENDÉ POUR GESTION PHP]
 
 ### Installation de l'extension MongoDB pour PHP
 
@@ -182,7 +182,7 @@ DB_PASSWORD=
 
 ### 5. Lancer les migrations (optionnel avec MongoDB)
 ```bash
-php artisan migrate
+php artisan migrate:fresh
 ```
 
 ### 6. Peupler la base avec des données de test
@@ -220,19 +220,9 @@ php artisan serve
 L'application sera accessible sur : **http://127.0.0.1:8000**
 
 ### 9. Connexion au dashboard
-Créer un utilisateur admin :
-```bash
-php artisan tinker
-```
-```php
-App\Models\User::create([
-    'name' => 'Admin',
-    'email' => 'admin@example.com',
-    'password' => bcrypt('password'),
-]);
-```
+Utilisateur par défaut:
 
-Connexion : `admin@example.com` / `password`
+Connexion : `admin@gmail.com` / `123456789`
 
 ## 🔌 API REST
 
@@ -543,14 +533,14 @@ php artisan db:seed --class=CommentaireSeeder
 
 | Seeder | Quantité | Description |
 |--------|----------|-------------|
-| `ClientSeeder` | 20 | Clients avec emails et téléphones |
-| `BoutiqueSeeder` | 5 | Boutiques avec adresses complètes |
-| `SalleSeeder` | 15-25 | Salles réparties dans les boutiques |
-| `UserSeeder` | 10 | Employés avec accès au système |
-| `AtelierSeeder` | 30 | Ateliers variés avec intervenants |
-| `ReservationSeeder` | ~100 | Réservations avec paiements |
-| `CommentaireSeeder` | 20-50 | Commentaires et notes sur ateliers |
-| `PanierSeeder` | ~6 | 30% des clients avec panier rempli |
+| `ClientSeeder` | 20       | Clients avec emails et téléphones |
+| `BoutiqueSeeder` | 5        | Boutiques avec adresses complètes |
+| `SalleSeeder` | 15-25    | Salles réparties dans les boutiques |
+| `UserSeeder` | 10       | Employés avec accès au système |
+| `AtelierSeeder` | 280        | Ateliers variés avec intervenants |
+| `ReservationSeeder` | ~100     | Réservations avec paiements |
+| `CommentaireSeeder` | 20-50    | Commentaires et notes sur ateliers |
+| `PanierSeeder` | ~6       | 30% des clients avec panier rempli |
 
 ### Méthodes helper du modèle Client
 
