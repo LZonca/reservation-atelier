@@ -28,10 +28,29 @@ class BoutiqueWebController extends Controller
             'adresse.numero' => 'nullable|string|max:50',
             'adresse.ville' => 'nullable|string|max:255',
             'adresse.code_postal' => 'nullable|string|max:20',
+
+            // Validation pour infoContact
+            'infoContact.email' => 'nullable|email|max:255',
+            'infoContact.telephone' => 'nullable|string|max:20',
+            'infoContact.website' => 'nullable|url|max:255',
+            'infoContact.youtube' => 'nullable|url|max:255',
+            'infoContact.instagram' => 'nullable|url|max:255',
+            'infoContact.facebook' => 'nullable|url|max:255',
+            'infoContact.twitter' => 'nullable|url|max:255',
+            'infoContact.pinterest' => 'nullable|url|max:255',
+            'infoContact.bluesky' => 'nullable|url|max:255',
         ]);
 
+        // Préparer les données pour la création
+        $boutiqueData = ['nom' => $data['nom']];
+
+        // Ajouter infoContact si fourni
+        if (!empty($data['infoContact']) && array_filter($data['infoContact'])) {
+            $boutiqueData['infoContact'] = array_filter($data['infoContact']);
+        }
+
         // créer la boutique
-        $boutique = Boutique::create(['nom' => $data['nom']]);
+        $boutique = Boutique::create($boutiqueData);
 
         // créer l'adresse embed si fournie
         if (!empty($data['adresse']) && array_filter($data['adresse'])) {
@@ -75,10 +94,33 @@ class BoutiqueWebController extends Controller
             'adresse.numero' => 'nullable|string|max:50',
             'adresse.ville' => 'nullable|string|max:255',
             'adresse.code_postal' => 'nullable|string|max:20',
+
+            // Validation pour infoContact
+            'infoContact.email' => 'nullable|email|max:255',
+            'infoContact.telephone' => 'nullable|string|max:20',
+            'infoContact.website' => 'nullable|url|max:255',
+            'infoContact.youtube' => 'nullable|url|max:255',
+            'infoContact.instagram' => 'nullable|url|max:255',
+            'infoContact.facebook' => 'nullable|url|max:255',
+            'infoContact.twitter' => 'nullable|url|max:255',
+            'infoContact.pinterest' => 'nullable|url|max:255',
+            'infoContact.bluesky' => 'nullable|url|max:255',
         ]);
 
         $boutique = Boutique::findOrFail($id);
-        $boutique->update(['nom' => $data['nom']]);
+
+        // Préparer les données pour la mise à jour
+        $updateData = ['nom' => $data['nom']];
+
+        // Ajouter infoContact si fourni
+        if (!empty($data['infoContact'])) {
+            // Filtrer les valeurs vides
+            $updateData['infoContact'] = array_filter($data['infoContact'], function($value) {
+                return $value !== null && $value !== '';
+            });
+        }
+
+        $boutique->update($updateData);
 
         // gérer l'adresse embed
         if (!empty($data['adresse']) && array_filter($data['adresse'])) {

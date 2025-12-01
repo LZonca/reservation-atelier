@@ -280,7 +280,7 @@
         {{-- Informations supplémentaires --}}
         <div class="bg-gray-50 rounded-lg shadow p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-3">Informations</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
                 <div>
                     <p class="text-gray-500">Date de création</p>
                     <p class="font-medium text-gray-900">{{ optional($boutique->created_at)->format('d/m/Y') ?? '—' }}</p>
@@ -303,6 +303,84 @@
                     </p>
                 </div>
             </div>
+
+            {{-- Informations de contact --}}
+            @if(!empty($boutique->infoContact))
+                @php
+                    $infoContact = $boutique->infoContact;
+                    $boutique_email = $infoContact['email'] ?? ($infoContact->email ?? null);
+                    $boutique_tel = $infoContact['telephone'] ?? ($infoContact->telephone ?? null);
+
+                    // réseaux et site (peuvent être absents)
+                    $boutique_website = $infoContact['website'] ?? ($infoContact->website ?? null);
+                    $boutique_youtube = $infoContact['youtube'] ?? ($infoContact->youtube ?? null);
+                    $boutique_instagram = $infoContact['instagram'] ?? ($infoContact->instagram ?? null);
+                    $boutique_facebook = $infoContact['facebook'] ?? ($infoContact->facebook ?? null);
+                    $boutique_twitter = $infoContact['twitter'] ?? ($infoContact->twitter ?? null);
+                    $boutique_pinterest = $infoContact['pinterest'] ?? ($infoContact->pinterest ?? null);
+                    $boutique_bluesky = $infoContact['bluesky'] ?? ($infoContact->bluesky ?? null);
+                @endphp
+
+                <div class="border-t pt-4">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">Coordonnées & Réseaux sociaux</h4>
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if($boutique_email)
+                            <a href="mailto:{{ $boutique_email }}" class="inline-flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                <x-heroicon-o-envelope class="w-4 h-4" />
+                                Email
+                            </a>
+                        @endif
+                        @if($boutique_tel)
+                            <a href="tel:{{ preg_replace('/\s+/', '', $boutique_tel) }}" class="inline-flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                <x-heroicon-o-phone class="w-4 h-4" />
+                                Téléphone
+                            </a>
+                        @endif
+                        @if($boutique_website)
+                            <a href="{{ $boutique_website }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                <x-heroicon-o-globe-alt class="w-4 h-4" />
+                                Site web
+                            </a>
+                        @endif
+                        @if($boutique_youtube)
+                            <a href="{{ $boutique_youtube }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                <x-si-youtube class="w-4 h-4" />
+                                YouTube
+                            </a>
+                        @endif
+                        @if($boutique_instagram)
+                            <a href="{{ $boutique_instagram }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-pink-100 hover:bg-pink-200 text-pink-800 px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                <x-si-instagram class="w-4 h-4" />
+                                Instagram
+                            </a>
+                        @endif
+                        @if($boutique_facebook)
+                            <a href="{{ $boutique_facebook }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                <x-si-facebook class="w-4 h-4" />
+                                Facebook
+                            </a>
+                        @endif
+                        @if($boutique_twitter)
+                            <a href="{{ $boutique_twitter }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                <x-si-x class="w-4 h-4" />
+                                Twitter/X
+                            </a>
+                        @endif
+                        @if($boutique_pinterest)
+                            <a href="{{ $boutique_pinterest }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                <x-si-pinterest class="w-4 h-4" />
+                                Pinterest
+                            </a>
+                        @endif
+                        @if($boutique_bluesky)
+                            <a href="{{ $boutique_bluesky }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 bg-sky-50 hover:bg-sky-100 text-sky-700 px-3 py-1.5 rounded text-xs font-medium transition-colors">
+                                <x-si-bluesky class="w-4 h-4" />
+                                Bluesky
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 

@@ -15,8 +15,10 @@ class BoutiqueRessource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id' => $this->id,
             'nom' => $this->nom,
             'adresse' => new AdresseRessource($this->adresse),
+            'infoContact' => $this->infoContact ?? null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

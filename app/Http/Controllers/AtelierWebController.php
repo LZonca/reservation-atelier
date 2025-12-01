@@ -44,6 +44,23 @@ class AtelierWebController extends Controller
             'salle_id' => 'nullable|string',
             'employe_id' => 'nullable|string',
             'vip' => 'sometimes|boolean',
+
+            // Validation pour l'intervenant embedded
+            'intervenant' => 'nullable|array',
+            'intervenant.nom' => 'nullable|string|max:255',
+            'intervenant.prenom' => 'nullable|string|max:255',
+
+            // Validation pour infoContact de l'intervenant
+            'intervenant.infoContact' => 'nullable|array',
+            'intervenant.infoContact.email' => 'nullable|email|max:255',
+            'intervenant.infoContact.telephone' => 'nullable|string|max:20',
+            'intervenant.infoContact.website' => 'nullable|url|max:255',
+            'intervenant.infoContact.youtube' => 'nullable|url|max:255',
+            'intervenant.infoContact.instagram' => 'nullable|url|max:255',
+            'intervenant.infoContact.facebook' => 'nullable|url|max:255',
+            'intervenant.infoContact.twitter' => 'nullable|url|max:255',
+            'intervenant.infoContact.pinterest' => 'nullable|url|max:255',
+            'intervenant.infoContact.bluesky' => 'nullable|url|max:255',
         ]);
 
         // Vérifier la disponibilité de la salle si salle_id, date et durée sont fournis
@@ -111,6 +128,23 @@ class AtelierWebController extends Controller
             'salle_id' => 'nullable|string',
             'employe_id' => 'nullable|string',
             'vip' => 'sometimes|boolean',
+
+            // Validation pour l'intervenant embedded
+            'intervenant' => 'nullable|array',
+            'intervenant.nom' => 'nullable|string|max:255',
+            'intervenant.prenom' => 'nullable|string|max:255',
+
+            // Validation pour infoContact de l'intervenant
+            'intervenant.infoContact' => 'nullable|array',
+            'intervenant.infoContact.email' => 'nullable|email|max:255',
+            'intervenant.infoContact.telephone' => 'nullable|string|max:20',
+            'intervenant.infoContact.website' => 'nullable|url|max:255',
+            'intervenant.infoContact.youtube' => 'nullable|url|max:255',
+            'intervenant.infoContact.instagram' => 'nullable|url|max:255',
+            'intervenant.infoContact.facebook' => 'nullable|url|max:255',
+            'intervenant.infoContact.twitter' => 'nullable|url|max:255',
+            'intervenant.infoContact.pinterest' => 'nullable|url|max:255',
+            'intervenant.infoContact.bluesky' => 'nullable|url|max:255',
         ]);
 
         $atelier = Atelier::findOrFail($id);

@@ -54,9 +54,9 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-gray-700">Intervenant</label>
+        <label class="block text-sm font-medium text-gray-700">Responsable (Employé)</label>
         <select name="employe_id" class="mt-1 block w-full border rounded-md px-3 py-2 text-sm">
-            <option value="">-- Choisir un intervenant (optionnel) --</option>
+            <option value="">-- Choisir un employé responsable --</option>
             @isset($intervenants)
                 @foreach($intervenants as $intervenant)
                     <option value="{{ $intervenant->getKey() }}" {{ (string) old('employe_id', $atelier->employe_id ?? '') === (string) $intervenant->getKey() ? 'selected' : '' }}>
@@ -68,7 +68,99 @@
         @error('employe_id') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
     </div>
 
-    <div class="flex items-center space-x-4">
+    {{-- Informations de l'intervenant (embeded) --}}
+    <div class="mt-6 pt-4 border-t border-gray-200">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Intervenant de l'atelier</h3>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Prénom de l'intervenant</label>
+                <input type="text" name="intervenant[prenom]" placeholder="Ex : Jean" value="{{ old('intervenant.prenom', $atelier->intervenant['prenom'] ?? $atelier->intervenant->prenom ?? '') }}" class="mt-1 block w-full border rounded-md px-3 py-2">
+                @error('intervenant.prenom') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Nom de l'intervenant</label>
+                <input type="text" name="intervenant[nom]" placeholder="Ex : Dupont" value="{{ old('intervenant.nom', $atelier->intervenant['nom'] ?? $atelier->intervenant->nom ?? '') }}" class="mt-1 block w-full border rounded-md px-3 py-2">
+                @error('intervenant.nom') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Email de l'intervenant</label>
+                <input type="email" name="intervenant[infoContact][email]" placeholder="intervenant@example.com" value="{{ old('intervenant.infoContact.email', $atelier->intervenant['infoContact']['email'] ?? $atelier->intervenant->infoContact->email ?? '') }}" class="mt-1 block w-full border rounded-md px-3 py-2">
+                @error('intervenant.infoContact.email') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Téléphone de l'intervenant</label>
+                <input type="tel" name="intervenant[infoContact][telephone]" placeholder="+33 6 12 34 56 78" value="{{ old('intervenant.infoContact.telephone', $atelier->intervenant['infoContact']['telephone'] ?? $atelier->intervenant->infoContact->telephone ?? '') }}" class="mt-1 block w-full border rounded-md px-3 py-2">
+                @error('intervenant.infoContact.telephone') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <label class="block text-sm font-medium text-gray-700">Site web de l'intervenant</label>
+            <input type="url" name="intervenant[infoContact][website]" placeholder="https://www.exemple.fr" value="{{ old('intervenant.infoContact.website', $atelier->intervenant['infoContact']['website'] ?? $atelier->intervenant->infoContact->website ?? '') }}" class="mt-1 block w-full border rounded-md px-3 py-2">
+            @error('intervenant.infoContact.website') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+        </div>
+
+        {{-- Réseaux sociaux de l'intervenant --}}
+        <div class="mt-6">
+            <h4 class="text-md font-medium text-gray-900 mb-3">Réseaux sociaux de l'intervenant (optionnels)</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <x-si-youtube class="w-4 h-4 text-red-600" />
+                        YouTube
+                    </label>
+                    <input type="url" name="intervenant[infoContact][youtube]" placeholder="https://youtube.com/..." value="{{ old('intervenant.infoContact.youtube', $atelier->intervenant['infoContact']['youtube'] ?? $atelier->intervenant->infoContact->youtube ?? '') }}" class="mt-1 block w-full border rounded-md px-3 py-2">
+                    @error('intervenant.infoContact.youtube') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <x-si-instagram class="w-4 h-4 text-pink-600" />
+                        Instagram
+                    </label>
+                    <input type="url" name="intervenant[infoContact][instagram]" placeholder="https://instagram.com/..." value="{{ old('intervenant.infoContact.instagram', $atelier->intervenant['infoContact']['instagram'] ?? $atelier->intervenant->infoContact->instagram ?? '') }}" class="mt-1 block w-full border rounded-md px-3 py-2">
+                    @error('intervenant.infoContact.instagram') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <x-si-facebook class="w-4 h-4 text-blue-600" />
+                        Facebook
+                    </label>
+                    <input type="url" name="intervenant[infoContact][facebook]" placeholder="https://facebook.com/..." value="{{ old('intervenant.infoContact.facebook', $atelier->intervenant['infoContact']['facebook'] ?? $atelier->intervenant->infoContact->facebook ?? '') }}" class="mt-1 block w-full border rounded-md px-3 py-2">
+                    @error('intervenant.infoContact.facebook') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <x-si-x class="w-4 h-4 text-blue-500" />
+                        Twitter/X
+                    </label>
+                    <input type="url" name="intervenant[infoContact][twitter]" placeholder="https://twitter.com/..." value="{{ old('intervenant.infoContact.twitter', $atelier->intervenant['infoContact']['twitter'] ?? $atelier->intervenant->infoContact->twitter ?? '') }}" class="mt-1 block w-full border rounded-md px-3 py-2">
+                    @error('intervenant.infoContact.twitter') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <x-si-pinterest class="w-4 h-4 text-red-500" />
+                        Pinterest
+                    </label>
+                    <input type="url" name="intervenant[infoContact][pinterest]" placeholder="https://pinterest.com/..." value="{{ old('intervenant.infoContact.pinterest', $atelier->intervenant['infoContact']['pinterest'] ?? $atelier->intervenant->infoContact->pinterest ?? '') }}" class="mt-1 block w-full border rounded-md px-3 py-2">
+                    @error('intervenant.infoContact.pinterest') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <x-si-bluesky class="w-4 h-4 text-sky-600" />
+                        Bluesky
+                    </label>
+                    <input type="url" name="intervenant[infoContact][bluesky]" placeholder="https://bsky.app/profile/..." value="{{ old('intervenant.infoContact.bluesky', $atelier->intervenant['infoContact']['bluesky'] ?? $atelier->intervenant->infoContact->bluesky ?? '') }}" class="mt-1 block w-full border rounded-md px-3 py-2">
+                    @error('intervenant.infoContact.bluesky') <div class="text-sm text-red-600">{{ $message }}</div> @enderror
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center space-x-4 mt-6">
         <label class="inline-flex items-center">
             <input type="checkbox" name="vip" value="1" {{ old('vip', $atelier->vip ?? false) ? 'checked' : '' }} class="form-checkbox">
             <span class="ml-2 text-sm text-gray-700">VIP</span>
