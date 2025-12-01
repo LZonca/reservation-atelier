@@ -20,10 +20,10 @@ class ReservationFactory extends Factory
     public function definition(): array
     {
         return [
-            'prix' => $this->faker->randomFloat(2, 20, 500),
+            'prix' => $this->faker->randomFloat(2, 10, 500),
             'nbPersonne' => $this->faker->numberBetween(1, 10),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 

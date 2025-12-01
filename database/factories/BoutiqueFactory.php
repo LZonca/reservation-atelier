@@ -17,13 +17,13 @@ class BoutiqueFactory extends Factory
             'nom' => $this->faker->company(),
             'adresse' => [
                 'rue' => $this->faker->streetName(),
-                'numero' => $this->faker->numberBetween(1, 49),
+                'numero' => $this->faker->numberBetween(1, 250),
                 'ville' => $this->faker->city(),
                 'code_postal' => $this->faker->postcode(),
             ],
             'infoContact' => InfoContact::factory()->raw(),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }

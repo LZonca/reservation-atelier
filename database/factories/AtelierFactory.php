@@ -20,42 +20,47 @@ class AtelierFactory extends Factory
 
     public function definition(): array
     {
+        $categories = [
+            'Peinture',
+            'Poterie',
+            'Arts du cirque',
+            'Crochet',
+            'Sculpture',
+            'Photographie',
+            'Danse',
+            'Théâtre',
+            'Musique',
+            'Cuisine',
+            'Écriture créative',
+            'Jardinage',
+            'DIY',
+            'Bijouterie',
+            'Tricot',
+            'Calligraphie',
+            'Décoration intérieure',
+            'Yoga',
+            'Méditation',
+            'Langues étrangères',
+        ];
+
+        $categorie = $this->faker->randomElement($categories);
+        $adjectifs = ['Initiation', 'Découverte', 'Perfectionnement', 'Maîtrise', 'Exploration'];
+
         return [
-            'nom' => $this->faker->words(3, true),
-            'date' => $this->faker->dateTimeBetween('now', '+2 week'),
+            'nom' => $this->faker->randomElement($adjectifs) . ' ' . strtolower($categorie),
+            'date' => $this->faker->dateTimeBetween('now', '+2 months'),
             'description' => $this->faker->sentence(10),
             'duree' => $this->faker->numberBetween(1, 4),
             'prix' => $this->faker->randomFloat(2, 10, 100),
-            'categorie' => $this->faker->randomElement([
-                'Peinture',
-                'Potterie',
-                'Arts du cirque',
-                'Crochet',
-                'Sculpture',
-                'Photographie',
-                'Danse',
-                'Théâtre',
-                'Musique',
-                'Cuisine',
-                'Écriture créative',
-                'Jardinage',
-                'DIY',
-                'Bijouterie',
-                'Tricot',
-                'Calligraphie',
-                'Décoration intérieure',
-                'Yoga',
-                'Méditation',
-                'Langues étrangères',
-            ]),
+            'categorie' => $categorie,
             'intervenant' => [
                 'nom' => $this->faker->lastName(),
                 'prenom' => $this->faker->firstName(),
                 'infoContact' => InfoContact::factory()->raw(),
             ],
             'vip' => $this->faker->boolean(30), // 30% de chances d'être VIP
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 

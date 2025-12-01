@@ -12,17 +12,20 @@ class ClientFactory extends Factory
 
     public function definition(): array
     {
+        $nom = $this->faker->lastName();
+        $prenom = $this->faker->firstName();
         return [
-            'nom' => $this->faker->lastName(),
-            'prenom' => $this->faker->firstName(),
-            'email' => $this->faker->unique()->safeEmail(),
+            'nom' => $nom,
+            'prenom' => $prenom,
+            // email is THE nom.prenom@gmail.com
+            'email' => strtolower($prenom) . '.' . strtolower($nom) . '@gmail.com',
             'phone' => $this->faker->phoneNumber(),
             'panier' => [
                 'ateliers' => [],
             ],
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-            'credit_fidelite'=>$this->faker->numberBetween(0,10)
+            'credit_fidelite' => $this->faker->numberBetween(0, 20),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }

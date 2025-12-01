@@ -455,8 +455,8 @@
                                         <div class="text-sm text-red-600 mb-2">{{ $message }}</div>
                                         @enderror
 
-                                        {{-- Champ pour carte bancaire --}}
-                                        @if($methodePaiement === 'carte')
+                                        {{-- Champ pour carte bancaire (seulement si ce n'est PAS un crédit de fidélité) --}}
+                                        @if($methodePaiement === 'carte' && !$hasVip)
                                             <label class="block font-semibold mb-1">Numéro de carte:</label>
                                             <input type="text"
                                                    wire:model="numCarte"

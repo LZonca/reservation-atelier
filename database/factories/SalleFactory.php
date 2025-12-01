@@ -12,12 +12,24 @@ class SalleFactory extends Factory
 
     public function definition(): array
     {
+        $salleTypes = ['Atelier', 'Studio', 'Salle', 'Espace'];
+        $salleNames = ['des Arts', 'Créative', 'Lumière', 'Harmonie', 'Renaissance', 'Inspiration', 'Émeraude', 'Azur'];
+
         return [
-            'nom' => $this->faker->name(),
-            'capacite' => $this->faker->numberBetween(1,100),
-            'categorie' => $this->faker->word(),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
+            'nom' => $this->faker->randomElement($salleTypes) . ' ' . $this->faker->randomElement($salleNames),
+            'capacite' => $this->faker->numberBetween(5, 50),
+            'categorie' => $this->faker->randomElement([
+                'Peinture',
+                'Sculpture',
+                'Danse',
+                'Musique',
+                'Arts plastiques',
+                'Multimédia',
+                'Théâtre',
+                'Artisanat',
+            ]),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }

@@ -13,9 +13,9 @@ class PanierFactory extends Factory
     public function definition(): array
     {
         return [
-            'expires_at' => Carbon::now(),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
+            'expires_at' => now()->addMinutes(20),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }

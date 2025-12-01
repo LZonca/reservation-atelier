@@ -341,6 +341,13 @@ class ClientsDisplay extends Component
         $this->selectedClient->panier = $panierToSave;
         $this->selectedClient->save();
 
+        // Ajuster la méthode de paiement si nécessaire
+        $hasVip = collect($this->panier['ateliers'] ?? [])->contains(fn($item) => $item['vip'] ?? false);
+        if ($hasVip) {
+            $this->methodePaiement = 'credit_fidelite';
+            $this->numCarte = '';
+        }
+
         session()->flash('success', 'Atelier ajouté au panier.');
     }
 
@@ -378,6 +385,13 @@ class ClientsDisplay extends Component
         $this->selectedClient->panier = $panierToSave;
         $this->selectedClient->save();
 
+        // Ajuster la méthode de paiement si nécessaire
+        $hasVip = collect($this->panier['ateliers'] ?? [])->contains(fn($item) => $item['vip'] ?? false);
+        if (!$hasVip && $this->methodePaiement === 'credit_fidelite') {
+            $this->methodePaiement = 'carte';
+            $this->numCarte = '';
+        }
+
         session()->flash('success', 'Atelier retiré du panier.');
     }
 
@@ -386,6 +400,10 @@ class ClientsDisplay extends Component
         $this->panier = ['ateliers' => []];
         $this->selectedClient->panier = $this->panier;
         $this->selectedClient->save();
+
+        // Réinitialiser la méthode de paiement
+        $this->methodePaiement = 'carte';
+        $this->numCarte = '';
 
         session()->flash('success', 'Panier vidé.');
     }
@@ -483,16 +501,22 @@ class ClientsDisplay extends Component
 
         try {
             // Vérifier la compatibilité méthode de paiement / ateliers
+            // Utiliser les données du panier directement pour éviter les incohérences
             $hasVip = false;
             $hasNonVip = false;
 
             foreach ($this->panier['ateliers'] as $item) {
+                // Utiliser d'abord les données du panier
+                $isVip = $item['vip'] ?? false;
+
+                // Vérifier aussi dans la base de données pour s'assurer de la cohérence
                 $atelier = Atelier::find($item['id']);
                 if (!$atelier) {
                     session()->flash('error', 'Atelier introuvable: ' . ($item['nom'] ?? 'Inconnu'));
                     return;
                 }
 
+                // Utiliser la valeur de la base de données comme source de vérité
                 if ($atelier->vip) {
                     $hasVip = true;
                 } else {
@@ -500,13 +524,20 @@ class ClientsDisplay extends Component
                 }
             }
 
+            // Log pour débogage
+            Log::info('Validation paiement', [
+                'methodePaiement' => $this->methodePaiement,
+                'hasVip' => $hasVip,
+                'hasNonVip' => $hasNonVip,
+            ]);
+
             // Validation des règles de paiement VIP
-            if ($this->methodePaiement == 'credit_fidelite' && $hasNonVip) {
+            if ($this->methodePaiement === 'credit_fidelite' && $hasNonVip) {
                 session()->flash('error', "Les crédits de fidélité ne peuvent être utilisés que pour les ateliers VIP. Veuillez retirer les ateliers non-VIP de votre panier.");
                 return;
             }
 
-            if ($hasVip && $this->methodePaiement != 'credit_fidelite') {
+            if ($hasVip && $this->methodePaiement !== 'credit_fidelite') {
                 session()->flash('error', "Les ateliers VIP ne peuvent être payés qu'avec des crédits de fidélité. Veuillez choisir 'Crédit de fidélité' comme méthode de paiement.");
                 return;
             }

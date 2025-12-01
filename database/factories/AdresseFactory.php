@@ -14,11 +14,11 @@ class AdresseFactory extends Factory
     {
         return [
             'rue' => $this->faker->streetName(),
-            'numero' => $this->faker->numberBetween(1, 49),
+            'numero' => $this->faker->numberBetween(1, 250),
             'ville' => $this->faker->city(),
             'code_postal' => $this->faker->postcode(),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }

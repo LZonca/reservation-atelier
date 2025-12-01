@@ -14,10 +14,10 @@ class PaiementFactory extends Factory
     {
         return [
             'numCarte' => $this->faker->creditCardNumber(),
-            'montant' => $this->faker->randomFloat(),
-            'statut' => $this->faker->word(),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
+            'montant' => $this->faker->randomFloat(2, 10, 500),
+            'statut' => $this->faker->randomElement(['en_attente', 'confirmé', 'annulé', 'remboursé']),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }
