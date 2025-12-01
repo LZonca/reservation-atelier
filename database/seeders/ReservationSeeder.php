@@ -40,7 +40,7 @@ class ReservationSeeder extends Seeder
         $totalMontant = 0;
 
         foreach ($ateliers as $atelier) {
-            $nbReservations = rand(2, 6);
+            $nbReservations = rand(5, 20);
 
             foreach (range(1, $nbReservations) as $i) {
                 $client = $clients->random();

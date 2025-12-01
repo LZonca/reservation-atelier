@@ -67,7 +67,7 @@ class SalleSeeder extends Seeder
         $this->command->info("   ✓ {$createdCount} salles spécifiques créées");
 
         // Salles aléatoires supplémentaires
-        $randomCount = 5;
+        $randomCount = 20;
         foreach (range(1, $randomCount) as $i) {
             Salle::factory()->create([
                 'boutique_id' => new ObjectId((string) $boutiques->random()->_id)

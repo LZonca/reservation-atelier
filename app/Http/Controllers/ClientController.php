@@ -143,15 +143,16 @@ class ClientController extends Controller
 
         // Validation conditionnelle selon la méthode de paiement
         $rules = [
-            'methode_paiement' => ['required', 'string', 'in:carte,virement,paypal,credit_fidelite'],
+            'methode_paiement' => ['required', 'string', 'in:carte,cheque,espece,credit_fidelite,paypal'],
         ];
 
         if ($methodePaiement === 'carte') {
             $rules['numCarte'] = ['required', 'string', 'min:13', 'max:19']; // Numéro de carte bancaire
-        } elseif ($methodePaiement === 'virement') {
-            $rules['numCarte'] = ['required', 'string', 'min:15']; // IBAN
+        } elseif ($methodePaiement === 'paypal') {
+            // Pour PayPal, on peut stocker l'ID de transaction ou l'email
+            $rules['numCarte'] = ['nullable', 'string', 'max:255'];
         }
-        // Pas de validation pour PayPal et credit_fidelite
+        // Pour cheque, espece, credit_fidelite : pas de numéro de carte requis
 
         $data = $request->validate($rules);
 

@@ -14,7 +14,7 @@ class BoutiqueSeeder extends Seeder
         $this->command->info('🏪 Création des boutiques et employés...');
 
         // Créer 3 boutiques
-        $boutiques = Boutique::factory(3)->create();
+        $boutiques = Boutique::factory(30)->create();
 
         $this->command->info("   ✓ {$boutiques->count()} boutiques créées");
 

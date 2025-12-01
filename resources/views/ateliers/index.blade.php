@@ -179,11 +179,12 @@
                                             @if(!empty($atelier->salle->boutique->adresse))
                                                 <span class="text-gray-500">
                                                     {{ $atelier->salle->boutique->adresse->numero ?? '' }}
-                                                    {{ $atelier->salle->boutique->adresse->rue ?? '' }}
+                                                    {{ $atelier->salle->boutique->adresse->rue .',' ?? '' }}
                                                 </span>
                                                 <span class="text-gray-500">
-                                                    {{ $atelier->salle->boutique->adresse->code_postal ?? '' }}
+
                                                     {{ $atelier->salle->boutique->adresse->ville ?? '' }}
+                                                    ({{ $atelier->salle->boutique->adresse->code_postal ?? '' }})
                                                 </span>
                                             @endif
                                     </div>
