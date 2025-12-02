@@ -4,6 +4,7 @@ use App\Http\Controllers\BoutiqueWebController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservationWebController;
 use App\Http\Controllers\SalleWebController;
+use App\Http\Controllers\AtelierCommentairesController;
 use App\Livewire\ClientsDisplay;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
@@ -27,6 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/ateliers/create', [AtelierWebController::class, 'create'])->name('ateliers.create');
     Route::post('/ateliers', [AtelierWebController::class, 'store'])->name('ateliers.store');
     Route::get('/ateliers/{atelier}', [AtelierWebController::class, 'show'])->name('ateliers.show');
+    Route::get('/ateliers/{atelier}/commentaires', [AtelierCommentairesController::class, 'index'])->name('ateliers.commentaires');
     Route::get('/ateliers/{atelier}/reservations', [AtelierWebController::class, 'reservations'])->name('ateliers.reservations');
     Route::post('/ateliers/{atelier}/reservations', [AtelierWebController::class, 'storeReservation'])->name('ateliers.reservations.store');
     Route::get('/ateliers/{atelier}/edit', [AtelierWebController::class, 'edit'])->name('ateliers.edit');
