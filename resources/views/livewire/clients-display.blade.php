@@ -73,6 +73,11 @@
         @endforeach
     </div>
 
+    <!-- Pagination -->
+    <div class="mt-6">
+        {{ $clients->links() }}
+    </div>
+
     <!-- Modal Création/Édition Client -->
     @if($editModalOpen)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -284,7 +289,7 @@
                                         class="w-full p-2 border border-gray-300 rounded mb-2">
                                     <option value="">-- Aucun --</option>
                                     @foreach($ateliers ?? [] as $atelier)
-                                        <option value="{{ $atelier->id }}">
+                                        <option value="{{ $atelier->_id }}">
                                             {{ $atelier->nom }}@if(!empty($atelier->date)) ({{ $atelier->date }})@endif
                                         </option>
                                     @endforeach
@@ -334,19 +339,19 @@
                         @endif
 
                         <!-- Liste des commentaires -->
-                        @if(!empty($selectedClient->commentaires) && (is_array($selectedClient->commentaires) ? count($selectedClient->commentaires) : $selectedClient->commentaires->count()))
+                        @if(!empty($clientCommentaires) && count($clientCommentaires) > 0)
                             <div class="space-y-3">
-                                @foreach($selectedClient->commentaires as $commentaire)
+                                @foreach($clientCommentaires as $commentaire)
                                     <div class="border border-gray-200 rounded-lg p-4 bg-white">
                                         <div class="flex justify-between items-start mb-2">
                                             <div>
                                                 <p class="text-sm text-gray-500">
-                                                    {{ isset($commentaire->created_at) ? $commentaire->created_at->format('d/m/Y H:i') : ($commentaire['created_at'] ?? 'N/A') }}
+                                                    {{ isset($commentaire['created_at']) ? date('d/m/Y H:i', strtotime($commentaire['created_at'])) : 'N/A' }}
                                                 </p>
-                                                @if(isset($commentaire->note) || isset($commentaire['note']))
+                                                @if(isset($commentaire['note']))
                                                     <div class="flex items-center gap-1 mt-1">
                                                         @for($i=1; $i<=5; $i++)
-                                                            @if($i <= ($commentaire->note ?? $commentaire['note'] ?? 0))
+                                                            @if($i <= ($commentaire['note'] ?? 0))
                                                                 <span class="text-yellow-400">★</span>
                                                             @else
                                                                 <span class="text-gray-300">☆</span>
@@ -356,7 +361,7 @@
                                                 @endif
                                             </div>
                                         </div>
-                                        <p class="text-gray-800">{{ $commentaire->commentaire ?? $commentaire['commentaire'] ?? 'N/A' }}</p>
+                                        <p class="text-gray-800">{{ $commentaire['commentaire'] ?? 'N/A' }}</p>
                                     </div>
                                 @endforeach
                             </div>
