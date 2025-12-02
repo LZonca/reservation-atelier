@@ -92,6 +92,30 @@ class Atelier extends EloquentModel
         return max(0, $salleCapacite - $reserved);
     }
 
+    /**
+     * Calcule la note moyenne de l'atelier
+     */
+    public function noteMoyenne(): ?float
+    {
+        $commentaires = Commentaire::where('atelier_id', new \MongoDB\BSON\ObjectId((string)$this->_id))
+            ->whereNotNull('note')
+            ->get();
+
+        if ($commentaires->isEmpty()) {
+            return null;
+        }
+
+        return round($commentaires->avg('note'), 1);
+    }
+
+    /**
+     * Compte le nombre de commentaires de l'atelier
+     */
+    public function nombreCommentaires(): int
+    {
+        return Commentaire::where('atelier_id', new \MongoDB\BSON\ObjectId((string)$this->_id))->count();
+    }
+
 
     protected function casts(): array
     {
