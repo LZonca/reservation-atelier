@@ -223,6 +223,24 @@ class AtelierController extends Controller
 
         $stats['revenue_by_method'] = $revenueByMethod;
 
+        // Moyenne des notes des commentaires
+        // Rechercher les commentaires par atelier_id (essayer avec string et ObjectId)
+        $atelierIdString = (string) $atelier->_id;
+        $atelierIdObject = new ObjectId($atelierIdString);
+
+        $commentaires = Commentaire::where(function($query) use ($atelierIdString, $atelierIdObject) {
+            $query->where('atelier_id', $atelierIdString)
+                  ->orWhere('atelier_id', $atelierIdObject);
+        })->get();
+
+        $stats['comments_count'] = $commentaires->count();
+
+        if ($stats['comments_count'] > 0) {
+            $stats['average_rating'] = round($commentaires->avg('note'), 2);
+        } else {
+            $stats['average_rating'] = 0;
+        }
+
         // Informations de l'atelier
         $stats['atelier'] = [
             'id' => (string) $atelier->_id,
