@@ -4,19 +4,24 @@ namespace App\Livewire;
 
 use App\Models\Client;
 use App\Models\Atelier;
+use App\Models\Commentaire;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Illuminate\Support\Facades\Log;
 use MongoDB\BSON\ObjectId;
 
 class ClientsDisplay extends Component
 {
-    public $clients;
+    use WithPagination;
+
     public $ateliers;
     public $search = '';
+    public $perPage = 20;
 
     // Modal client
     public $clientModalOpen = false;
     public $selectedClient = null;
+    public $clientCommentaires = []; // Stocker les commentaires séparément pour Livewire
 
     // Modal création/édition
     public $editModalOpen = false;
@@ -50,32 +55,30 @@ class ClientsDisplay extends Component
 
     public $paymentStatus = [];
 
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
     public function mount()
     {
-        $this->clients = Client::with('commentaires')->get();
-        $this->ateliers = Atelier::all();
-        $this->ateliersDisponibles = Atelier::all();
-
-        // Init paymentStatus for existing payments (optional)
-        try {
-            foreach ($this->ateliers as $atelier) {
-                foreach ($atelier->reservations ?? [] as $res) {
-                    foreach ($res['paiements'] ?? [] as $pay) {
-                        $pid = data_get($pay, '_id') ?? data_get($pay, 'id');
-                        if ($pid) {
-                            $this->paymentStatus[(string)$pid] = data_get($pay, 'statut') ?? data_get($pay, 'status');
-                        }
-                    }
-                }
-            }
-        } catch (\Throwable $e) {
-            Log::warning('[ClientsDisplay] Impossible d\'initialiser paymentStatus: ' . $e->getMessage());
-        }
+        // Optimisation : Ne rien charger au démarrage
+        // Les ateliers seront chargés uniquement quand nécessaire (lazy loading)
     }
 
     public function openClientModal($id)
     {
-        $this->selectedClient = Client::with('commentaires')->find($id);
+        $this->selectedClient = Client::find($id);
+
+        // Charger manuellement les commentaires et les stocker dans une propriété Livewire
+        $clientOid = new ObjectId((string)$id);
+        $commentaires = Commentaire::where('client_id', $clientOid)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Stocker dans une propriété Livewire pour persistance
+        $this->clientCommentaires = $commentaires->toArray();
+        $this->selectedClient->setRelation('commentaires', $commentaires);
 
         // Convertir les ObjectId du panier en string pour l'UI Livewire
         $panierFromDb = $this->selectedClient->panier ?? ['ateliers' => []];
@@ -94,6 +97,7 @@ class ClientsDisplay extends Component
     public function closeClientModal()
     {
         $this->selectedClient = null;
+        $this->clientCommentaires = [];
         $this->clientModalOpen = false;
         $this->showPanierSection = false;
         $this->showPaiementForm = false;
@@ -192,26 +196,12 @@ class ClientsDisplay extends Component
             }
 
             $this->closeEditModal();
-            $this->clients = Client::with('commentaires')->get();
+            // La liste sera automatiquement rechargée par render() avec la pagination
 
         } catch (\Exception $e) {
             Log::error('[ClientsDisplay] Erreur sauvegarde client: ' . $e->getMessage());
             session()->flash('error', 'Erreur lors de la sauvegarde du client.');
         }
-    }
-
-    public function updatedSearch()
-    {
-        if (empty($this->search)) {
-            $this->clients = Client::with('commentaires')->get();
-            return;
-        }
-
-        $this->clients = Client::where('nom', 'like', '%' . $this->search . '%')
-            ->orWhere('prenom', 'like', '%' . $this->search . '%')
-            ->orWhere('email', 'like', '%' . $this->search . '%')
-            ->orWhere('phone', 'like', '%' . $this->search . '%')
-            ->get();
     }
 
     // ==========================================
@@ -227,6 +217,11 @@ class ClientsDisplay extends Component
             'atelier_id' => null,
             'reservation_id' => null,
         ];
+
+        // Lazy loading : charger les ateliers uniquement quand on ajoute un commentaire
+        if (empty($this->ateliers)) {
+            $this->ateliers = Atelier::select('_id', 'nom')->get();
+        }
     }
 
     public function setRating($n)
@@ -256,23 +251,46 @@ class ClientsDisplay extends Component
             'note' => $this->newComment['note'] ?? null,
         ];
 
-        // Convertir les IDs en ObjectId
+        // Convertir les IDs en ObjectId explicitement
         if ($atelierId) {
-            $data['atelier_id'] = new ObjectId((string) $atelierId);
+            try {
+                $data['atelier_id'] = new ObjectId((string) $atelierId);
+            } catch (\Exception $e) {
+                Log::error('[ClientsDisplay] Erreur conversion atelier_id: ' . $e->getMessage());
+                $this->addError('newComment.atelier_id', 'ID atelier invalide.');
+                return;
+            }
         }
 
-        $data['client_id'] = new ObjectId((string) ($this->selectedClient->_id ?? $this->selectedClient->id));
+        try {
+            $clientIdStr = (string) ($this->selectedClient->_id ?? $this->selectedClient->id);
+            $data['client_id'] = new ObjectId($clientIdStr);
+        } catch (\Exception $e) {
+            Log::error('[ClientsDisplay] Erreur conversion client_id: ' . $e->getMessage());
+            $this->addError('newComment', 'ID client invalide.');
+            return;
+        }
 
         try {
-            $created = $this->selectedClient->commentaires()->create($data);
+            // Créer directement le commentaire au lieu d'utiliser la relation
+            $created = Commentaire::create($data);
 
             Log::debug('[ClientsDisplay] Commentaire créé', [
                 'id' => $created->_id,
                 'client_id' => $created->client_id,
-                'atelier_id' => $created->atelier_id,
+                'atelier_id' => $created->atelier_id ?? 'null',
             ]);
 
-            $this->selectedClient->load('commentaires');
+            // Recharger manuellement les commentaires
+            $clientId = $this->selectedClient->_id ?? $this->selectedClient->id;
+            $clientOid = new ObjectId((string)$clientId);
+            $commentaires = Commentaire::where('client_id', $clientOid)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // Mettre à jour les deux : la relation ET la propriété Livewire
+            $this->clientCommentaires = $commentaires->toArray();
+            $this->selectedClient->setRelation('commentaires', $commentaires);
 
             $this->addingComment = false;
             $this->newComment = [
@@ -298,6 +316,11 @@ class ClientsDisplay extends Component
     public function togglePanierSection()
     {
         $this->showPanierSection = !$this->showPanierSection;
+
+        // Lazy loading : charger les ateliers uniquement quand on ouvre la section panier
+        if ($this->showPanierSection && empty($this->ateliersDisponibles)) {
+            $this->ateliersDisponibles = Atelier::select('_id', 'nom', 'prix', 'vip')->get();
+        }
     }
 
     public function addToPanier($atelierId)
@@ -707,6 +730,22 @@ class ClientsDisplay extends Component
 
     public function render()
     {
-        return view('livewire.clients-display')->layout('layouts.app');
+        $query = Client::with('commentaires');
+
+        // Filtrer selon la recherche
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('nom', 'like', '%' . $this->search . '%')
+                    ->orWhere('prenom', 'like', '%' . $this->search . '%')
+                    ->orWhere('email', 'like', '%' . $this->search . '%')
+                    ->orWhere('phone', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        $clients = $query->paginate($this->perPage);
+
+        return view('livewire.clients-display', [
+            'clients' => $clients
+        ])->layout('layouts.app');
     }
 }

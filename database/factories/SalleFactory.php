@@ -12,7 +12,7 @@ class SalleFactory extends Factory
 
     public function definition(): array
     {
-        $salleTypes = ['Atelier', 'Studio', 'Salle', 'Espace'];
+        $salleTypes = ['Studio', 'Salle', 'Espace'];
         $salleNames = ['des Arts', 'Créative', 'Lumière', 'Harmonie', 'Renaissance', 'Inspiration', 'Émeraude', 'Azur'];
 
         return [

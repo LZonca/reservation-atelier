@@ -16,6 +16,8 @@ class Commentaire extends EloquentModel
     protected $fillable = [
         'commentaire',
         'client',
+        'client_id',
+        'atelier_id',
         'note',
         'created_at',
         'updated_at',

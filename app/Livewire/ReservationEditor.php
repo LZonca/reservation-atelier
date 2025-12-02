@@ -212,8 +212,8 @@ class ReservationEditor extends Component
         $atelier->save();
 
         session()->flash('success', 'Réservation annulée et paiement marqué comme remboursé.');
-
         $this->open = false;
+        $this->reservationId = null; // Ajouté pour fermer le dialog
 
         // Rafraîchir la page
         return redirect()->to(request()->header('Referer'));
